@@ -1481,18 +1481,44 @@
                         <p style="font-size:12px; color:var(--text-muted);" id="nafath_timestamp_label">تم التوثيق والاعتماد بمطابقة الهوية الوطنية</p>
                     </div>
 
-                    <!-- Interactive Signature Pad (الرسم باليد أو اللمس) -->
-                    <div style="background:#ffffff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:18px; margin:18px 0; text-align:right;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <label class="form-label" style="margin:0;"><i data-lucide="pen-tool"></i> التوقيع اليدوي للمرشح (باللمس على الجوال أو بالفأرة):</label>
-                            <button type="button" class="access-btn" onclick="clearSignatureCanvas()" style="color:var(--danger); font-size:11px;">
-                                <i data-lucide="rotate-ccw"></i> إعادة التوقيع
-                            </button>
+                    <!-- Signature Section (Dual Mode: Draw or Type) -->
+                    <div style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:18px; margin:20px 0; text-align:right;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                            <label class="form-label" style="margin:0;"><i data-lucide="pen-tool"></i> طريقة توقيع عقد العمل:</label>
+                            <!-- Mode Toggle -->
+                            <div style="display:flex; gap:6px; background:var(--bg-subtle); padding:3px; border-radius:8px; border:1px solid var(--border-color);">
+                                <button type="button" id="btn-sig-mode-draw" class="access-btn" onclick="setSignatureMode('draw')" style="background:var(--primary); color:#fff; font-weight:700; border-radius:6px; padding:4px 10px;">
+                                    ✍️ رسم باليد / اللمس
+                                </button>
+                                <button type="button" id="btn-sig-mode-type" class="access-btn" onclick="setSignatureMode('type')" style="font-weight:700; border-radius:6px; padding:4px 10px;">
+                                    🔤 توقيع بالاسم
+                                </button>
+                            </div>
                         </div>
-                        <div style="border:2px dashed var(--border-color); border-radius:var(--radius-sm); background:#fafafa; height:120px; position:relative; overflow:hidden;">
-                            <canvas id="sigCanvas" style="width:100%; height:100%; cursor:crosshair; touch-action:none;"></canvas>
-                            <span id="sigPlaceholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#94a3b8; font-size:12px; pointer-events:none;">
-                                وقع هنا بإصبعك على شاشة الجوال أو بالفأرة
+
+                        <!-- 1. Canvas Box (Draw Mode) -->
+                        <div id="sig-draw-container">
+                            <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+                                <button type="button" class="access-btn" onclick="clearSignatureCanvas()" style="color:var(--danger); font-size:11.5px;">
+                                    <i data-lucide="rotate-ccw"></i> مسح وإعادة الرسم
+                                </button>
+                            </div>
+                            <div style="border:2px dashed var(--border-color); border-radius:var(--radius-sm); background:var(--bg-subtle); height:140px; position:relative; overflow:hidden; touch-action:none;">
+                                <canvas id="sigCanvas" style="width:100%; height:100%; cursor:crosshair; touch-action:none; display:block;"></canvas>
+                                <span id="sigPlaceholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:var(--text-muted); font-size:13px; font-weight:600; pointer-events:none; user-select:none;">
+                                    ✍️ وقع هنا بإصبعك على شاشة الجوال أو بالفأرة
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 2. Typed Signature Box (Type Mode) -->
+                        <div id="sig-type-container" style="display:none; text-align:center; padding:16px; border:2px dashed var(--border-color); border-radius:var(--radius-sm); background:var(--bg-subtle);">
+                            <span style="display:block; font-size:11.5px; color:var(--text-muted); margin-bottom:8px;">التوقيع الرقمي المعتمد بالاسم الكامل:</span>
+                            <div style="font-size:24px; font-weight:900; color:var(--primary); font-family:serif; letter-spacing:1px; margin:8px 0;" id="typed-sig-display">
+                                محمد عبدالله القحطاني
+                            </div>
+                            <span style="display:inline-flex; align-items:center; gap:4px; font-size:11.5px; color:var(--success); font-weight:700;">
+                                <i data-lucide="check-circle-2"></i> توقيع رقمي معتمد ومربوط برقم الهوية
                             </span>
                         </div>
                     </div>
@@ -1974,7 +2000,11 @@
             if (iconNav) iconNav.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
             if (label) label.innerText = isDark ? 'الوضع النهاري' : 'الوضع المظلم';
 
-            lucide.createIcons();
+            if (sigCtx) {
+                sigCtx.strokeStyle = isDark ? '#f43f5e' : '#0f172a';
+            }
+
+            if (window.lucide) lucide.createIcons();
         }
 
         function toggleDarkMode() {
@@ -1988,65 +2018,137 @@
             (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         applyTheme(savedTheme);
 
-        // --- لوحة التوقيع اليدوي التفاعلية (HTML5 Signature Pad) ---
+        // --- لوحة التوقيع التفاعلية المزدوجة (Dual-Mode Signature Pad) ---
         let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
+        let currentSignatureMode = 'draw'; // 'draw' | 'type'
+
+        function setSignatureMode(mode) {
+            currentSignatureMode = mode;
+            const drawBox = document.getElementById('sig-draw-container');
+            const typeBox = document.getElementById('sig-type-container');
+            const btnDraw = document.getElementById('btn-sig-mode-draw');
+            const btnType = document.getElementById('btn-sig-mode-type');
+
+            if (mode === 'draw') {
+                if (drawBox) drawBox.style.display = 'block';
+                if (typeBox) typeBox.style.display = 'none';
+                if (btnDraw) {
+                    btnDraw.style.background = 'var(--primary)';
+                    btnDraw.style.color = '#fff';
+                }
+                if (btnType) {
+                    btnType.style.background = 'transparent';
+                    btnType.style.color = 'var(--text-body)';
+                }
+                setTimeout(calibrateSignatureCanvas, 50);
+            } else {
+                if (drawBox) drawBox.style.display = 'none';
+                if (typeBox) typeBox.style.display = 'block';
+                if (btnType) {
+                    btnType.style.background = 'var(--primary)';
+                    btnType.style.color = '#fff';
+                }
+                if (btnDraw) {
+                    btnDraw.style.background = 'transparent';
+                    btnDraw.style.color = 'var(--text-body)';
+                }
+                const nameInput = document.getElementById('app_name');
+                const appNameVal = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'محمد عبدالله القحطاني';
+                const typedDisplay = document.getElementById('typed-sig-display');
+                if (typedDisplay) typedDisplay.innerText = appNameVal;
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function calibrateSignatureCanvas() {
+            sigCanvas = document.getElementById('sigCanvas');
+            if (!sigCanvas) return;
+            const rect = sigCanvas.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
+            let backupData = null;
+            if (hasSigned && sigCanvas.width > 0 && sigCanvas.height > 0) {
+                try {
+                    backupData = sigCanvas.toDataURL();
+                } catch (e) {}
+            }
+
+            sigCanvas.width = Math.round(rect.width);
+            sigCanvas.height = Math.round(rect.height);
+
+            sigCtx = sigCanvas.getContext('2d');
+            sigCtx.lineWidth = 3;
+            sigCtx.lineCap = 'round';
+            sigCtx.lineJoin = 'round';
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            sigCtx.strokeStyle = isDark ? '#f43f5e' : '#0f172a';
+
+            if (backupData) {
+                const img = new Image();
+                img.onload = () => {
+                    if (sigCtx) sigCtx.drawImage(img, 0, 0, sigCanvas.width, sigCanvas.height);
+                };
+                img.src = backupData;
+            }
+        }
 
         function initSignaturePad() {
             sigCanvas = document.getElementById('sigCanvas');
             if (!sigCanvas) return;
-            sigCtx = sigCanvas.getContext('2d');
 
-            // ضبط أبعاد الـ Canvas
-            const rect = sigCanvas.getBoundingClientRect();
-            sigCanvas.width = rect.width || 360;
-            sigCanvas.height = rect.height || 120;
-
-            sigCtx.lineWidth = 2.5;
-            sigCtx.lineCap = 'round';
-            sigCtx.strokeStyle = '#0f172a'; // حبر أسود كحلي أنيق
-
-            function getPos(e) {
+            function getCanvasPos(e) {
                 const r = sigCanvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const scaleX = (sigCanvas.width > 0 && r.width > 0) ? (sigCanvas.width / r.width) : 1;
+                const scaleY = (sigCanvas.height > 0 && r.height > 0) ? (sigCanvas.height / r.height) : 1;
                 return {
-                    x: clientX - r.left,
-                    y: clientY - r.top
+                    x: (e.clientX - r.left) * scaleX,
+                    y: (e.clientY - r.top) * scaleY
                 };
             }
 
-            function startDraw(e) {
+            function handlePointerDown(e) {
+                if (!sigCtx || sigCanvas.width !== Math.round(sigCanvas.getBoundingClientRect().width)) {
+                    calibrateSignatureCanvas();
+                }
                 isDrawing = true;
-                const pos = getPos(e);
+                try {
+                    sigCanvas.setPointerCapture(e.pointerId);
+                } catch (err) {}
+
+                const pos = getCanvasPos(e);
                 sigCtx.beginPath();
                 sigCtx.moveTo(pos.x, pos.y);
+
                 const placeholder = document.getElementById('sigPlaceholder');
                 if (placeholder) placeholder.style.display = 'none';
                 e.preventDefault();
             }
 
-            function draw(e) {
-                if (!isDrawing) return;
-                const pos = getPos(e);
+            function handlePointerMove(e) {
+                if (!isDrawing || !sigCtx) return;
+                const pos = getCanvasPos(e);
                 sigCtx.lineTo(pos.x, pos.y);
                 sigCtx.stroke();
                 hasSigned = true;
                 e.preventDefault();
             }
 
-            function stopDraw() {
+            function handlePointerUp(e) {
+                if (!isDrawing) return;
                 isDrawing = false;
+                try {
+                    sigCanvas.releasePointerCapture(e.pointerId);
+                } catch (err) {}
             }
 
-            // أحداث الفأرة
-            sigCanvas.addEventListener('mousedown', startDraw);
-            sigCanvas.addEventListener('mousemove', draw);
-            window.addEventListener('mouseup', stopDraw);
+            // Modern Pointer Events
+            sigCanvas.addEventListener('pointerdown', handlePointerDown);
+            sigCanvas.addEventListener('pointermove', handlePointerMove);
+            sigCanvas.addEventListener('pointerup', handlePointerUp);
+            sigCanvas.addEventListener('pointercancel', handlePointerUp);
 
-            // أحداث اللمس لشاشات الجوال والأجهزة اللوحية
-            sigCanvas.addEventListener('touchstart', startDraw, { passive: false });
-            sigCanvas.addEventListener('touchmove', draw, { passive: false });
-            sigCanvas.addEventListener('touchend', stopDraw);
+            calibrateSignatureCanvas();
         }
 
         function clearSignatureCanvas() {
@@ -2059,6 +2161,12 @@
 
         window.addEventListener('DOMContentLoaded', initSignaturePad);
         window.addEventListener('load', initSignaturePad);
+        window.addEventListener('resize', () => {
+            const step5 = document.getElementById('step-content-5');
+            if (step5 && step5.style.display !== 'none' && currentSignatureMode === 'draw') {
+                calibrateSignatureCanvas();
+            }
+        });
 
         // --- تبديل الواجهات (View Switching) ---
         function switchView(viewName) {
@@ -2079,7 +2187,7 @@
             }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         // --- خطوات منصة التوظيف (Stepper) ---
@@ -2095,11 +2203,18 @@
                     if (i === stepNum) pill.classList.add('active');
                 }
             }
+            if (stepNum === 5) {
+                const nameInput = document.getElementById('app_name');
+                const appNameVal = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'محمد عبدالله القحطاني';
+                const typedDisplay = document.getElementById('typed-sig-display');
+                if (typedDisplay) typedDisplay.innerText = appNameVal;
+                setTimeout(calibrateSignatureCanvas, 60);
+            }
             if (stepNum === 6) {
                 populateContractData();
             }
             window.scrollTo({ top: 120, behavior: 'smooth' });
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         // --- تدقيق الهوية الوطنية (Luhn Algorithm) ---
@@ -2279,14 +2394,15 @@
             document.getElementById('c_bank').innerText = bank;
             document.getElementById('c_salary').innerText = salary;
 
-            // عرض التوقيع اليدوي الفعلي إن وُجد أو الاسم الصريح
+            // عرض التوقيع الفعلي (يدوي أو بالاسم الرقمي المعتمد)
             const sigBox = document.getElementById('contract_sig_box');
             if (sigBox) {
-                if (sigCanvas && hasSigned) {
+                if (currentSignatureMode === 'draw' && sigCanvas && hasSigned) {
                     const sigDataUrl = sigCanvas.toDataURL('image/png');
-                    sigBox.innerHTML = '<img src="' + sigDataUrl + '" alt="توقيع الموظف المعتمد" style="max-height:52px; max-width:180px; object-fit:contain;">';
+                    sigBox.innerHTML = '<img src="' + sigDataUrl + '" alt="توقيع الموظف المعتمد" style="max-height:55px; max-width:190px; object-fit:contain; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.1));">';
                 } else {
-                    sigBox.innerHTML = '<span style="font-size:17px; color:#0f172a; font-weight:700;">' + name + '</span>';
+                    sigBox.innerHTML = '<div style="font-size:20px; font-weight:800; color:var(--primary); font-family:serif; letter-spacing:0.5px;">' + name + '</div>' +
+                        '<div style="font-size:10.5px; color:var(--success); font-weight:700; margin-top:3px;"><i data-lucide="check-circle-2"></i> توقيع رقمي معتمد برقم الهوية: ' + id + '</div>';
                 }
             }
 
@@ -2347,7 +2463,7 @@
 
             document.getElementById('portal-login-box').style.display = 'none';
             document.getElementById('portal-dashboard').style.display = 'block';
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function logoutEmployee() {
