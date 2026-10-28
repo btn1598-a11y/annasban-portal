@@ -1171,6 +1171,34 @@
             gap: 6px;
         }
 
+        /* وسوم فلترة المشاريع السريعة */
+        .project-pill {
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-heading);
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .project-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--bg-subtle);
+        }
+        .project-pill.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(139, 26, 26, 0.25);
+        }
+
         /* كرت المتقدم (Accordion Item) */
         .applicant-item {
             background: var(--bg-card);
@@ -2239,15 +2267,47 @@
                             </div>
                         </div>
 
-                        <!-- 2. Search Bar (Matching Image 1) -->
-                        <div class="hr-search-bar">
-                            <button type="button" class="access-btn" onclick="loadApplications()" title="تحديث القائمة" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
-                                <i data-lucide="rotate-ccw"></i>
-                            </button>
-                            <button type="button" class="hr-search-btn" onclick="handleApplicationSearch()">
-                                بحث
-                            </button>
-                            <input type="text" id="app_search_input" class="hr-search-input" placeholder="بحث بالاسم أو رقم الطلب أو رقم الهوية..." onkeyup="if(event.key==='Enter') handleApplicationSearch()">
+                        <!-- 2. Search & Project Filter Bar (Matching Image 1 + Project Filtering) -->
+                        <div class="hr-filter-container" style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+                            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                <!-- شريط البحث النصي -->
+                                <div class="hr-search-bar" style="flex:1; min-width:280px; margin-bottom:0;">
+                                    <button type="button" class="access-btn" onclick="resetApplicantFilters()" title="إعادة تعيين كافة الفلاتر والبحث" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+                                        <i data-lucide="rotate-ccw"></i>
+                                    </button>
+                                    <button type="button" class="hr-search-btn" onclick="handleApplicationSearch()">
+                                        بحث
+                                    </button>
+                                    <input type="text" id="app_search_input" class="hr-search-input" placeholder="بحث بالاسم أو رقم الطلب أو رقم الهوية أو المشروع..." onkeyup="if(event.key==='Enter') handleApplicationSearch()">
+                                </div>
+
+                                <!-- قائمة اختيار المشروع المقدم له -->
+                                <div style="display:flex; align-items:center; gap:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:6px 12px; box-shadow:var(--shadow-sm);">
+                                    <span style="font-size:12.5px; font-weight:800; color:var(--text-heading); display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                                        <i data-lucide="building-2" style="width:16px; height:16px; color:var(--primary);"></i>
+                                        <span>المشروع المقدم له:</span>
+                                    </span>
+                                    <select id="app_project_filter" class="form-control" style="width:auto; min-width:220px; padding:6px 10px; font-size:13px; font-weight:700; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-subtle); color:var(--text-heading);" onchange="filterApplicationsByProject(this.value)">
+                                        <option value="الكل">🏢 جميع المشاريع (الكل)</option>
+                                        <option value="مشروع مجمع وزارة الداخلية">مشروع مجمع وزارة الداخلية</option>
+                                        <option value="مشروع المربع الجديد">مشروع المربع الجديد</option>
+                                        <option value="مشروع مركز الملك عبدالله المالي (KAFD)">مشروع مركز الملك عبدالله المالي (KAFD)</option>
+                                        <option value="مشروع هيئة السوق المالية">مشروع هيئة السوق المالية</option>
+                                        <option value="مشروع برج النصبان">مشروع برج النصبان</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- وسوم فلترة سريعة للمشاريع النشطة (Project Badges Pill Strip) -->
+                            <div id="project_pills_strip" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; align-items:center; font-size:12px;">
+                                <span style="font-size:11.5px; color:var(--text-muted); font-weight:700; white-space:nowrap;">فلترة سريعة بالمشروع:</span>
+                                <button type="button" class="project-pill active" data-project="الكل" onclick="filterApplicationsByProject('الكل', this)">الكل (108)</button>
+                                <button type="button" class="project-pill" data-project="مشروع مجمع وزارة الداخلية" onclick="filterApplicationsByProject('مشروع مجمع وزارة الداخلية', this)">مجمع وزارة الداخلية (83)</button>
+                                <button type="button" class="project-pill" data-project="مشروع المربع الجديد" onclick="filterApplicationsByProject('مشروع المربع الجديد', this)">المربع الجديد (22)</button>
+                                <button type="button" class="project-pill" data-project="مشروع مركز الملك عبدالله المالي (KAFD)" onclick="filterApplicationsByProject('مشروع مركز الملك عبدالله المالي (KAFD)', this)">مركز KAFD (1)</button>
+                                <button type="button" class="project-pill" data-project="مشروع هيئة السوق المالية" onclick="filterApplicationsByProject('مشروع هيئة السوق المالية', this)">هيئة السوق المالية (1)</button>
+                                <button type="button" class="project-pill" data-project="مشروع برج النصبان" onclick="filterApplicationsByProject('مشروع برج النصبان', this)">برج النصبان (1)</button>
+                            </div>
                         </div>
 
                         <!-- 3. Applicants List (Accordion Items matching Image 1) -->

@@ -5,6 +5,7 @@
 
 let applicationsCache = [];
 let activeStatusFilter = 'الكل';
+let activeProjectFilter = 'الكل';
 const HR_API_BASE = (typeof API_BASE !== 'undefined') ? API_BASE : ((window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000');
 
 function getLogoSrc() {
@@ -34,20 +35,24 @@ function switchHrSubTab(tab) {
     if (window.lucide) lucide.createIcons();
 }
 
-async function loadApplications(status, search) {
-    const currentStatus = status !== undefined ? status : activeStatusFilter;
+async function loadApplications(status, search, project) {
+    if (status !== undefined) activeStatusFilter = status;
+    if (project !== undefined) activeProjectFilter = project;
+    const currentStatus = activeStatusFilter;
+    const currentProject = activeProjectFilter;
     const currentSearch = search !== undefined ? search : (document.getElementById('app_search_input')?.value || '');
     const listContainer = document.getElementById('hr_applicants_list');
 
     try {
         const params = new URLSearchParams();
         if (currentStatus && currentStatus !== 'الكل') params.append('status', currentStatus);
+        if (currentProject && currentProject !== 'الكل') params.append('project', currentProject);
         if (currentSearch) params.append('search', currentSearch);
 
         const res = await fetch(`${HR_API_BASE}/api/applications?${params.toString()}`);
         if (res.ok) {
             const json = await res.json();
-            const { metrics, applications } = json.data;
+            const { metrics, projects, applications } = json.data;
             applicationsCache = applications || [];
 
             if (metrics) {
@@ -59,6 +64,11 @@ async function loadApplications(status, search) {
                 setTxt('stat_rejected', metrics.rejected);
                 setTxt('stat_processing', metrics.processing);
                 setTxt('stat_completed', metrics.completed);
+            }
+
+            // تحديث واجهة فلترة المشاريع الحية
+            if (projects) {
+                updateProjectFilterUI(projects);
             }
 
             renderApplicationsList();
@@ -75,12 +85,84 @@ function filterApplicationsByStatus(status, element) {
     activeStatusFilter = status;
     document.querySelectorAll('.hr-status-card').forEach(c => c.classList.remove('active'));
     if (element) element.classList.add('active');
-    loadApplications(status, document.getElementById('app_search_input')?.value);
+    loadApplications(status, document.getElementById('app_search_input')?.value, activeProjectFilter);
+}
+
+function filterApplicationsByProject(project, element) {
+    activeProjectFilter = project;
+
+    // مزامنة القائمة المنسدلة
+    const sel = document.getElementById('app_project_filter');
+    if (sel && sel.value !== project) {
+        sel.value = project;
+    }
+
+    // مزامنة أزرار الـ Pills
+    document.querySelectorAll('.project-pill').forEach(p => p.classList.remove('active'));
+    if (element && element.classList) {
+        element.classList.add('active');
+    } else {
+        document.querySelectorAll('.project-pill').forEach(p => {
+            if (p.getAttribute('data-project') === project || (project === 'الكل' && p.innerText.includes('الكل'))) {
+                p.classList.add('active');
+            }
+        });
+    }
+
+    loadApplications(activeStatusFilter, document.getElementById('app_search_input')?.value, project);
+}
+
+function resetApplicantFilters() {
+    activeStatusFilter = 'الكل';
+    activeProjectFilter = 'الكل';
+    const searchInput = document.getElementById('app_search_input');
+    if (searchInput) searchInput.value = '';
+    const sel = document.getElementById('app_project_filter');
+    if (sel) sel.value = 'الكل';
+
+    document.querySelectorAll('.hr-status-card').forEach(c => c.classList.remove('active'));
+    const firstCard = document.querySelector('.status-card-all');
+    if (firstCard) firstCard.classList.add('active');
+
+    document.querySelectorAll('.project-pill').forEach(p => p.classList.remove('active'));
+    const firstPill = document.querySelector('.project-pill');
+    if (firstPill) firstPill.classList.add('active');
+
+    loadApplications('الكل', '', 'الكل');
+}
+
+function updateProjectFilterUI(projects) {
+    if (!projects || !Array.isArray(projects)) return;
+
+    const sel = document.getElementById('app_project_filter');
+    if (sel) {
+        const currentVal = activeProjectFilter;
+        let optionsHtml = `<option value="الكل">🏢 جميع المشاريع (الكل)</option>`;
+        projects.forEach(p => {
+            optionsHtml += `<option value="${p.project_name}">${p.project_name} (${p.count})</option>`;
+        });
+        sel.innerHTML = optionsHtml;
+        if (projects.some(p => p.project_name === currentVal) || currentVal === 'الكل') {
+            sel.value = currentVal;
+        }
+    }
+
+    const strip = document.getElementById('project_pills_strip');
+    if (strip) {
+        const totalCount = projects.reduce((acc, p) => acc + (p.count || 0), 0);
+        let pillsHtml = `<span style="font-size:11.5px; color:var(--text-muted); font-weight:700; white-space:nowrap;">فلترة سريعة بالمشروع:</span>`;
+        pillsHtml += `<button type="button" class="project-pill ${activeProjectFilter === 'الكل' ? 'active' : ''}" data-project="الكل" onclick="filterApplicationsByProject('الكل', this)">الكل (${totalCount})</button>`;
+        projects.forEach(p => {
+            const isActive = (activeProjectFilter === p.project_name);
+            pillsHtml += `<button type="button" class="project-pill ${isActive ? 'active' : ''}" data-project="${p.project_name}" onclick="filterApplicationsByProject('${p.project_name}', this)">${p.project_name} (${p.count})</button>`;
+        });
+        strip.innerHTML = pillsHtml;
+    }
 }
 
 function handleApplicationSearch() {
     const query = document.getElementById('app_search_input')?.value.trim();
-    loadApplications(activeStatusFilter, query);
+    loadApplications(activeStatusFilter, query, activeProjectFilter);
 }
 
 function getStatusPillClass(status) {
@@ -123,7 +205,17 @@ function renderApplicationsList() {
                         <div class="applicant-avatar">${initial}</div>
                         <div class="applicant-name-box">
                             <h4>${app.full_name}</h4>
-                            <p>${app.app_id} · ${app.job_title} · ${app.phone}</p>
+                            <p style="margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px;">
+                                <span>${app.app_id}</span>
+                                <span style="opacity:0.4;">·</span>
+                                <span>${app.job_title}</span>
+                                <span style="opacity:0.4;">·</span>
+                                <span style="color:var(--primary); font-weight:700; background:var(--primary-light); padding:1px 8px; border-radius:4px; font-size:11.5px; display:inline-flex; align-items:center; gap:3px;">
+                                    🏢 ${app.project_name || 'مشروع مجمع وزارة الداخلية'}
+                                </span>
+                                <span style="opacity:0.4;">·</span>
+                                <span dir="ltr">${app.phone}</span>
+                            </p>
                         </div>
                     </div>
                     <div class="applicant-meta-left">

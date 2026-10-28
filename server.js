@@ -679,6 +679,7 @@ const server = http.createServer(async (req, res) => {
         // 14.1 استعراض طلبات التوظيف والمتقدمين مع مقاييس الحالات والبحث (Applications Directory & Metrics)
         if (pathname === '/api/applications' && method === 'GET') {
             const statusFilter = parsedUrl.searchParams.get('status');
+            const projectFilter = parsedUrl.searchParams.get('project');
             const search = (parsedUrl.searchParams.get('search') || '').trim();
 
             const metrics = {
@@ -691,6 +692,14 @@ const server = http.createServer(async (req, res) => {
                 completed: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'مكتمل'").get().c
             };
 
+            const projects = db.prepare(`
+                SELECT project_name, COUNT(*) as count 
+                FROM applications 
+                WHERE project_name IS NOT NULL AND project_name != '' 
+                GROUP BY project_name 
+                ORDER BY count DESC
+            `).all();
+
             let query = 'SELECT * FROM applications WHERE 1=1';
             const params = [];
 
@@ -699,16 +708,21 @@ const server = http.createServer(async (req, res) => {
                 params.push(statusFilter);
             }
 
+            if (projectFilter && projectFilter !== 'الكل') {
+                query += ' AND project_name = ?';
+                params.push(projectFilter);
+            }
+
             if (search) {
-                query += ' AND (full_name LIKE ? OR app_id LIKE ? OR national_id LIKE ? OR phone LIKE ?)';
+                query += ' AND (full_name LIKE ? OR app_id LIKE ? OR national_id LIKE ? OR phone LIKE ? OR project_name LIKE ?)';
                 const term = `%${search}%`;
-                params.push(term, term, term, term);
+                params.push(term, term, term, term, term);
             }
 
             query += ' ORDER BY id DESC LIMIT 150';
 
             const applications = db.prepare(query).all(...params);
-            return sendSuccess(res, { metrics, applications });
+            return sendSuccess(res, { metrics, projects, applications });
         }
 
         // 14.2 استعراض تفاصيل طلب توظيف فردي
