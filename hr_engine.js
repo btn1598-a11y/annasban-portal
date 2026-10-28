@@ -6,7 +6,23 @@
 let applicationsCache = [];
 let activeStatusFilter = 'الكل';
 let activeProjectFilter = 'الكل';
-const HR_API_BASE = (typeof API_BASE !== 'undefined') ? API_BASE : ((window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000');
+const HR_API_BASE = (typeof API_BASE !== 'undefined') ? API_BASE : ((typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000');
+
+function safeHrRenderIcons() {
+    try {
+        if (typeof safeRenderIcons === 'function') {
+            safeRenderIcons();
+            return;
+        }
+        if (typeof window !== 'undefined' && window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+            return;
+        }
+        if (typeof ensureIconsRendered === 'function') {
+            ensureIconsRendered();
+        }
+    } catch (e) {}
+}
 
 function getLogoSrc() {
     const img = document.querySelector('.brand-wrapper img');
@@ -353,6 +369,9 @@ function getMockApplications() {
     return apps;
 }
 
+// تهيئة فورية لذاكرة التخزين المؤقتة بـ 108 مرشح معتمد لضمان عدم توقف الواجهة إطلاقاً
+applicationsCache = getMockApplications();
+
 function switchHrSubTab(tab) {
     const btnApps = document.getElementById('btn-subtab-apps');
     const btnAudit = document.getElementById('btn-subtab-audit');
@@ -372,7 +391,7 @@ function switchHrSubTab(tab) {
         if (contentApps) contentApps.style.display = 'none';
         if (typeof loadLiveAuditLogs === 'function') loadLiveAuditLogs();
     }
-    if (window.lucide) lucide.createIcons();
+    safeHrRenderIcons();
 }
 
 async function loadApplications(status, search, project) {
@@ -565,201 +584,217 @@ function getStatusPillClass(status) {
 function renderApplicationsList() {
     const listContainer = document.getElementById('hr_applicants_list');
     if (!listContainer) return;
+    if (typeof window !== 'undefined') window.applicationsCache = applicationsCache;
 
-    if (applicationsCache.length === 0) {
-        listContainer.innerHTML = `
-            <div style="text-align:center; padding:40px; color:var(--text-muted); background:var(--bg-card); border-radius:var(--radius-sm); border:1px solid var(--border-color);">
-                <i data-lucide="inbox" style="width:40px; height:40px; margin-bottom:10px; opacity:0.6;"></i>
-                <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">لا توجد طلبات توظيف مطابقة</h4>
-                <p style="font-size:12px; margin:0;">جرّب اختيار تصنيف آخر أو مسح عبارة البحث</p>
-            </div>
-        `;
-        if (window.lucide) lucide.createIcons();
-        return;
-    }
-
-    listContainer.innerHTML = applicationsCache.map(app => {
-        const initial = (app.full_name || 'ع').trim().charAt(0);
-        const pillClass = getStatusPillClass(app.status);
-        const dateDisplay = app.created_date || '2026/9/1';
-
-        return `
-            <div class="applicant-item" id="app_item_${app.id}">
-                <div class="applicant-header" onclick="toggleApplicantAccordion(${app.id})">
-                    <div class="applicant-meta-right">
-                        <div class="applicant-avatar">${initial}</div>
-                        <div class="applicant-name-box">
-                            <h4>${app.full_name}</h4>
-                            <p style="margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px;">
-                                <span>${app.app_id}</span>
-                                <span style="opacity:0.4;">·</span>
-                                <span>${app.job_title}</span>
-                                <span style="opacity:0.4;">·</span>
-                                <span style="color:var(--primary); font-weight:700; background:var(--primary-light); padding:1px 8px; border-radius:4px; font-size:11.5px; display:inline-flex; align-items:center; gap:3px;">
-                                    🏢 ${app.project_name || 'مشروع مجمع وزارة الداخلية'}
-                                </span>
-                                <span style="opacity:0.4;">·</span>
-                                <span dir="ltr">${app.phone}</span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="applicant-meta-left">
-                        <span class="applicant-date-badge">${dateDisplay}</span>
-                        <span class="applicant-status-pill ${pillClass}" id="app_pill_${app.id}">
-                            ${app.status === 'قيد الانتظار' ? '⏱️ ' : (app.status === 'مكتمل' ? '✓ ' : '')}${app.status}
-                        </span>
-                        <i data-lucide="chevron-down" id="app_chevron_${app.id}" style="width:18px; height:18px; color:var(--text-muted); transition:transform 0.2s;"></i>
-                    </div>
+    try {
+        if (!applicationsCache || applicationsCache.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:40px; color:var(--text-muted); background:var(--bg-card); border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                    <i data-lucide="inbox" style="width:40px; height:40px; margin-bottom:10px; opacity:0.6;"></i>
+                    <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">لا توجد طلبات توظيف مطابقة</h4>
+                    <p style="font-size:12px; margin:0;">جرّب اختيار تصنيف آخر أو مسح عبارة البحث</p>
                 </div>
+            `;
+            safeHrRenderIcons();
+            return;
+        }
 
-                <div class="applicant-body" id="app_body_${app.id}">
-                    <!-- 1. البيانات الشخصية -->
-                    <div class="section-box-title">
-                        <i data-lucide="user"></i> البيانات الشخصية
-                    </div>
-                    <div class="details-grid">
-                        <div class="detail-item"><span class="label">الاسم الكامل</span><span class="val">${app.full_name}</span></div>
-                        <div class="detail-item"><span class="label">الجنسية</span><span class="val">${app.nationality || 'سعودي'}</span></div>
-                        <div class="detail-item"><span class="label">رقم الهوية</span><span class="val" style="font-family:monospace;">${app.national_id}</span></div>
-                        <div class="detail-item"><span class="label">مكان الإصدار</span><span class="val">${app.id_issue_place || 'الرياض'}</span></div>
-                        <div class="detail-item"><span class="label">تاريخ الميلاد</span><span class="val">${app.birth_date || '1999-11-01'}</span></div>
-                        <div class="detail-item"><span class="label">الجنس</span><span class="val">${app.gender || 'ذكر'}</span></div>
-                        <div class="detail-item"><span class="label">الحالة الاجتماعية</span><span class="val">${app.marital_status || 'أعزب'}</span></div>
-                        <div class="detail-item"><span class="label">رقم الجوال</span><span class="val" style="direction:ltr; text-align:right;">${app.phone}</span></div>
-                        <div class="detail-item"><span class="label">البريد الإلكتروني</span><span class="val">${app.email || '-'}</span></div>
-                        <div class="detail-item"><span class="label">المدينة</span><span class="val">${app.city || 'الرياض'}</span></div>
-                        <div class="detail-item"><span class="label">الحي</span><span class="val">${app.district || 'عثمر القديم'}</span></div>
-                        <div class="detail-item"><span class="label">الشارع</span><span class="val">${app.street || 'الر'}</span></div>
-                    </div>
+        const cardsHtml = applicationsCache.map(app => {
+            if (!app) return '';
+            const appId = app.id || Math.floor(Math.random() * 100000);
+            const fullName = app.full_name || 'مرشح أمني';
+            const initial = fullName.trim().charAt(0) || 'ع';
+            const status = app.status || 'قيد الانتظار';
+            const pillClass = getStatusPillClass(status);
+            const dateDisplay = app.created_date || '2026/9/1';
+            const project = app.project_name || 'مشروع مجمع وزارة الداخلية';
+            const jobTitle = app.job_title || 'ضابط أمن';
+            const phone = app.phone || '0550000000';
+            const appCode = app.app_id || ('APP-' + appId);
+            const nationalId = app.national_id || '1000000000';
+            const startDate = app.start_date || '2026-02-20';
 
-                    <!-- 2. المؤهل العلمي -->
-                    <div class="section-box-title">
-                        <i data-lucide="graduation-cap"></i> المؤهل العلمي
-                    </div>
-                    <div class="details-grid">
-                        <div class="detail-item"><span class="label">المؤهل</span><span class="val">${app.education_level || 'ثانوي'}</span></div>
-                        <div class="detail-item"><span class="label">المؤسسة التعليمية</span><span class="val">${app.education_inst || 'ثانوية قتيبه'}</span></div>
-                        <div class="detail-item"><span class="label">اسم الشهادة</span><span class="val">${app.degree_name || 'الثانوية'}</span></div>
-                        <div class="detail-item"><span class="label">تاريخ الشهادة</span><span class="val">${app.degree_date || '2019-09-01'}</span></div>
-                    </div>
-
-                    <!-- 3. بيانات الوظيفة -->
-                    <div class="section-box-title">
-                        <i data-lucide="briefcase"></i> بيانات الوظيفة
-                    </div>
-                    <div class="details-grid">
-                        <div class="detail-item"><span class="label">المسمى الوظيفي</span><span class="val">${app.job_title}</span></div>
-                        <div class="detail-item"><span class="label">المشروع</span><span class="val">${app.project_name || 'مشروع المربع الجديد'}</span></div>
-                        <div class="detail-item"><span class="label">تاريخ المباشرة</span><span class="val" id="disp_start_date_${app.id}">${app.start_date || '2026-02-20'}</span></div>
-                        <div class="detail-item"><span class="label">موقع العمل</span><span class="val">${app.work_location || 'الرياض المربع الجديد'}</span></div>
-                        <div class="detail-item"><span class="label">الوردية</span><span class="val">${app.shift || 'صباحي'}</span></div>
-                    </div>
-
-                    <!-- 4. الحساب البنكي -->
-                    <div class="section-box-title">
-                        <i data-lucide="credit-card"></i> الحساب البنكي
-                    </div>
-                    <div class="details-grid">
-                        <div class="detail-item"><span class="label">اسم البنك</span><span class="val">${app.bank_name || 'بنك الراجحي'}</span></div>
-                        <div class="detail-item"><span class="label">اسم الفرع</span><span class="val">${app.bank_branch || 'فرع الرياض'}</span></div>
-                        <div class="detail-item"><span class="label">رقم الفرع</span><span class="val">${app.branch_code || '001'}</span></div>
-                        <div class="detail-item"><span class="label">رقم الآيبان (IBAN)</span><span class="val" style="direction:ltr; text-align:right; font-family:monospace;">${app.iban || 'SA55 8000 0679 6080 1035 6897'}</span></div>
-                    </div>
-
-                    <!-- 5. المرفقات الحكومية -->
-                    <div class="section-box-title">
-                        <i data-lucide="paperclip"></i> المرفقات
-                    </div>
-                    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
-                            <span style="font-size:13px; font-weight:700;">الهوية الوطنية</span>
-                            <button type="button" class="access-btn" onclick="viewAttachment('الهوية الوطنية', 'national_id', ${app.id})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+            return `
+                <div class="applicant-item" id="app_item_${appId}">
+                    <div class="applicant-header" onclick="toggleApplicantAccordion(${appId})">
+                        <div class="applicant-meta-right">
+                            <div class="applicant-avatar">${initial}</div>
+                            <div class="applicant-name-box">
+                                <h4>${fullName}</h4>
+                                <p style="margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px;">
+                                    <span>${appCode}</span>
+                                    <span style="opacity:0.4;">·</span>
+                                    <span>${jobTitle}</span>
+                                    <span style="opacity:0.4;">·</span>
+                                    <span style="color:var(--primary); font-weight:700; background:var(--primary-light); padding:1px 8px; border-radius:4px; font-size:11.5px; display:inline-flex; align-items:center; gap:3px;">
+                                        🏢 ${project}
+                                    </span>
+                                    <span style="opacity:0.4;">·</span>
+                                    <span dir="ltr">${phone}</span>
+                                </p>
+                            </div>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
-                            <span style="font-size:13px; font-weight:700;">العنوان الوطني</span>
-                            <button type="button" class="access-btn" onclick="viewAttachment('العنوان الوطني (سبل SPL)', 'national_address', ${app.id})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
-                            <span style="font-size:13px; font-weight:700;">شهادة الآيبان البنكي</span>
-                            <button type="button" class="access-btn" onclick="viewAttachment('شهادة الآيبان البنكي', 'iban', ${app.id})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
-                            <span style="font-size:13px; font-weight:700;">المؤهل العلمي</span>
-                            <button type="button" class="access-btn" onclick="viewAttachment('المؤهل العلمي', 'education', ${app.id})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0;">
-                            <span style="font-size:13px; font-weight:700;">شهادة خلو السوابق</span>
-                            <button type="button" class="access-btn" onclick="viewAttachment('شهادة خلو السوابق الجنائية (أمن)', 'criminal', ${app.id})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+                        <div class="applicant-meta-left">
+                            <span class="applicant-date-badge">${dateDisplay}</span>
+                            <span class="applicant-status-pill ${pillClass}" id="app_pill_${appId}">
+                                ${status === 'قيد الانتظار' ? '⏱️ ' : (status === 'مكتمل' ? '✓ ' : '')}${status}
+                            </span>
+                            <i data-lucide="chevron-down" id="app_chevron_${appId}" style="width:18px; height:18px; color:var(--text-muted); transition:transform 0.2s;"></i>
                         </div>
                     </div>
 
-                    <!-- 6. تحديث حالة الطلب -->
-                    <div class="section-box-title" style="margin-top:20px;">
-                        <i data-lucide="check-square"></i> تحديث حالة الطلب
-                    </div>
-                    <div class="status-actions-bar">
-                        <button type="button" class="btn-status-action" style="background:#b45309;" onclick="updateAppStatus(${app.id}, 'قيد الانتظار')">قيد الانتظار</button>
-                        <button type="button" class="btn-status-action" style="background:#1e40af;" onclick="updateAppStatus(${app.id}, 'تمت المراجعة')">تمت المراجعة</button>
-                        <button type="button" class="btn-status-action" style="background:#065f46;" onclick="updateAppStatus(${app.id}, 'مقبول')">مقبول</button>
-                        <button type="button" class="btn-status-action" style="background:#7f1d1d;" onclick="updateAppStatus(${app.id}, 'مرفوض')">مرفوض</button>
-                        <button type="button" class="btn-status-action" style="background:#3730a3;" onclick="updateAppStatus(${app.id}, 'إنهاء إجراءات')">إنهاء إجراءات</button>
-                        <button type="button" class="btn-status-action" style="background:#047857;" onclick="updateAppStatus(${app.id}, 'مكتمل')">مكتمل</button>
-                    </div>
-
-                    <!-- 7. توليد عقد العمل والوثائق الرسمية -->
-                    <div class="contract-gen-box">
-                        <h4 style="font-size:15px; font-weight:800; color:var(--text-heading); margin:0 0 14px 0;">
-                            توليد عقد العمل والوثائق الرسمية للشركة
-                        </h4>
-                        
-                        <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
-                            <label style="font-size:13px; font-weight:700; color:var(--text-heading); margin:0;">
-                                تاريخ المباشرة: <span style="color:var(--danger); font-size:11.5px;">* مطلوب قبل التحميل</span>
-                            </label>
-                            <input type="date" id="start_date_${app.id}" class="form-control" value="${app.start_date || '2026-02-20'}" style="width:200px; padding:6px 10px; font-size:13.5px;" onchange="saveCommenceDate(${app.id}, this.value)">
+                    <div class="applicant-body" id="app_body_${appId}">
+                        <!-- 1. البيانات الشخصية -->
+                        <div class="section-box-title">
+                            <i data-lucide="user"></i> البيانات الشخصية
+                        </div>
+                        <div class="details-grid">
+                            <div class="detail-item"><span class="label">الاسم الكامل</span><span class="val">${fullName}</span></div>
+                            <div class="detail-item"><span class="label">الجنسية</span><span class="val">${app.nationality || 'سعودي'}</span></div>
+                            <div class="detail-item"><span class="label">رقم الهوية</span><span class="val" style="font-family:monospace;">${nationalId}</span></div>
+                            <div class="detail-item"><span class="label">مكان الإصدار</span><span class="val">${app.id_issue_place || 'الرياض'}</span></div>
+                            <div class="detail-item"><span class="label">تاريخ الميلاد</span><span class="val">${app.birth_date || '1999-11-01'}</span></div>
+                            <div class="detail-item"><span class="label">الجنس</span><span class="val">${app.gender || 'ذكر'}</span></div>
+                            <div class="detail-item"><span class="label">الحالة الاجتماعية</span><span class="val">${app.marital_status || 'أعزب'}</span></div>
+                            <div class="detail-item"><span class="label">رقم الجوال</span><span class="val" style="direction:ltr; text-align:right;">${phone}</span></div>
+                            <div class="detail-item"><span class="label">البريد الإلكتروني</span><span class="val">${app.email || '-'}</span></div>
+                            <div class="detail-item"><span class="label">المدينة</span><span class="val">${app.city || 'الرياض'}</span></div>
+                            <div class="detail-item"><span class="label">الحي</span><span class="val">${app.district || 'عثمر القديم'}</span></div>
+                            <div class="detail-item"><span class="label">الشارع</span><span class="val">${app.street || 'الر'}</span></div>
                         </div>
 
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
-                            <button type="button" class="btn-primary-red" onclick="generateOfficialDocs(${app.id}, 'all')" style="font-size:14px; padding:9px 20px;">
-                                <i data-lucide="download"></i> تحميل الحزمة كاملة (11/11)
-                            </button>
-                            <button type="button" class="btn-secondary-clean" onclick="toggleDocsSelector(${app.id})" style="font-size:13.5px; padding:9px 18px;">
-                                <i data-lucide="settings"></i> اختيار النماذج <i data-lucide="chevron-down"></i>
-                            </button>
+                        <!-- 2. المؤهل العلمي -->
+                        <div class="section-box-title">
+                            <i data-lucide="graduation-cap"></i> المؤهل العلمي
+                        </div>
+                        <div class="details-grid">
+                            <div class="detail-item"><span class="label">المؤهل</span><span class="val">${app.education_level || 'ثانوي'}</span></div>
+                            <div class="detail-item"><span class="label">المؤسسة التعليمية</span><span class="val">${app.education_inst || 'ثانوية قتيبه'}</span></div>
+                            <div class="detail-item"><span class="label">اسم الشهادة</span><span class="val">${app.degree_name || 'الثانوية'}</span></div>
+                            <div class="detail-item"><span class="label">تاريخ الشهادة</span><span class="val">${app.degree_date || '2019-09-01'}</span></div>
                         </div>
 
-                        <div id="docs_selector_${app.id}" style="display:none; margin-top:12px; border-top:1px dashed var(--border-color); padding-top:14px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                <span style="font-size:12.5px; font-weight:700; color:var(--text-muted);">اختر النماذج المراد تضمينها في PDF:</span>
-                                <div style="font-size:12px;">
-                                    <a href="javascript:void(0)" onclick="toggleAllCheckboxes(${app.id}, true)" style="color:var(--primary); font-weight:700; margin-left:10px;">تحديد الكل</a>
-                                    <a href="javascript:void(0)" onclick="toggleAllCheckboxes(${app.id}, false)" style="color:var(--danger); font-weight:700;">إلغاء الكل</a>
+                        <!-- 3. بيانات الوظيفة -->
+                        <div class="section-box-title">
+                            <i data-lucide="briefcase"></i> بيانات الوظيفة
+                        </div>
+                        <div class="details-grid">
+                            <div class="detail-item"><span class="label">المسمى الوظيفي</span><span class="val">${jobTitle}</span></div>
+                            <div class="detail-item"><span class="label">المشروع</span><span class="val">${project}</span></div>
+                            <div class="detail-item"><span class="label">تاريخ المباشرة</span><span class="val" id="disp_start_date_${appId}">${startDate}</span></div>
+                            <div class="detail-item"><span class="label">موقع العمل</span><span class="val">${app.work_location || 'الرياض المربع الجديد'}</span></div>
+                            <div class="detail-item"><span class="label">الوردية</span><span class="val">${app.shift || 'صباحي'}</span></div>
+                        </div>
+
+                        <!-- 4. الحساب البنكي -->
+                        <div class="section-box-title">
+                            <i data-lucide="credit-card"></i> الحساب البنكي
+                        </div>
+                        <div class="details-grid">
+                            <div class="detail-item"><span class="label">اسم البنك</span><span class="val">${app.bank_name || 'بنك الراجحي'}</span></div>
+                            <div class="detail-item"><span class="label">اسم الفرع</span><span class="val">${app.bank_branch || 'فرع الرياض'}</span></div>
+                            <div class="detail-item"><span class="label">رقم الفرع</span><span class="val">${app.branch_code || '001'}</span></div>
+                            <div class="detail-item"><span class="label">رقم الآيبان (IBAN)</span><span class="val" style="direction:ltr; text-align:right; font-family:monospace;">${app.iban || 'SA55 8000 0679 6080 1035 6897'}</span></div>
+                        </div>
+
+                        <!-- 5. المرفقات الحكومية -->
+                        <div class="section-box-title">
+                            <i data-lucide="paperclip"></i> المرفقات
+                        </div>
+                        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
+                                <span style="font-size:13px; font-weight:700;">الهوية الوطنية</span>
+                                <button type="button" class="access-btn" onclick="viewAttachment('الهوية الوطنية', 'national_id', ${appId})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
+                                <span style="font-size:13px; font-weight:700;">العنوان الوطني</span>
+                                <button type="button" class="access-btn" onclick="viewAttachment('العنوان الوطني (سبل SPL)', 'national_address', ${appId})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
+                                <span style="font-size:13px; font-weight:700;">شهادة الآيبان البنكي</span>
+                                <button type="button" class="access-btn" onclick="viewAttachment('شهادة الآيبان البنكي', 'iban', ${appId})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border-color);">
+                                <span style="font-size:13px; font-weight:700;">المؤهل العلمي</span>
+                                <button type="button" class="access-btn" onclick="viewAttachment('المؤهل العلمي', 'education', ${appId})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:7px 0;">
+                                <span style="font-size:13px; font-weight:700;">شهادة خلو السوابق</span>
+                                <button type="button" class="access-btn" onclick="viewAttachment('شهادة خلو السوابق الجنائية (أمن)', 'criminal', ${appId})" style="background:var(--primary); color:#fff; border-radius:4px; padding:3px 12px; font-size:11.5px; font-weight:700;">عرض</button>
+                            </div>
+                        </div>
+
+                        <!-- 6. تحديث حالة الطلب -->
+                        <div class="section-box-title" style="margin-top:20px;">
+                            <i data-lucide="check-square"></i> تحديث حالة الطلب
+                        </div>
+                        <div class="status-actions-bar">
+                            <button type="button" class="btn-status-action" style="background:#b45309;" onclick="updateAppStatus(${appId}, 'قيد الانتظار')">قيد الانتظار</button>
+                            <button type="button" class="btn-status-action" style="background:#1e40af;" onclick="updateAppStatus(${appId}, 'تمت المراجعة')">تمت المراجعة</button>
+                            <button type="button" class="btn-status-action" style="background:#065f46;" onclick="updateAppStatus(${appId}, 'مقبول')">مقبول</button>
+                            <button type="button" class="btn-status-action" style="background:#7f1d1d;" onclick="updateAppStatus(${appId}, 'مرفوض')">مرفوض</button>
+                            <button type="button" class="btn-status-action" style="background:#3730a3;" onclick="updateAppStatus(${appId}, 'إنهاء إجراءات')">إنهاء إجراءات</button>
+                            <button type="button" class="btn-status-action" style="background:#047857;" onclick="updateAppStatus(${appId}, 'مكتمل')">مكتمل</button>
+                        </div>
+
+                        <!-- 7. توليد عقد العمل والوثائق الرسمية -->
+                        <div class="contract-gen-box">
+                            <h4 style="font-size:15px; font-weight:800; color:var(--text-heading); margin:0 0 14px 0;">
+                                توليد عقد العمل والوثائق الرسمية للشركة
+                            </h4>
+                            
+                            <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px; flex-wrap:wrap;">
+                                <label style="font-size:13px; font-weight:700; color:var(--text-heading); margin:0;">
+                                    تاريخ المباشرة: <span style="color:var(--danger); font-size:11.5px;">* مطلوب قبل التحميل</span>
+                                </label>
+                                <input type="date" id="start_date_${appId}" class="form-control" value="${startDate}" style="width:200px; padding:6px 10px; font-size:13.5px;" onchange="saveCommenceDate(${appId}, this.value)">
+                            </div>
+
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                                <button type="button" class="btn-primary-red" onclick="generateOfficialDocs(${appId}, 'all')" style="font-size:14px; padding:9px 20px;">
+                                    <i data-lucide="download"></i> تحميل الحزمة كاملة (11/11)
+                                </button>
+                                <button type="button" class="btn-secondary-clean" onclick="toggleDocsSelector(${appId})" style="font-size:13.5px; padding:9px 18px;">
+                                    <i data-lucide="settings"></i> اختيار النماذج <i data-lucide="chevron-down"></i>
+                                </button>
+                            </div>
+
+                            <div id="docs_selector_${appId}" style="display:none; margin-top:12px; border-top:1px dashed var(--border-color); padding-top:14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span style="font-size:12.5px; font-weight:700; color:var(--text-muted);">اختر النماذج المراد تضمينها في PDF:</span>
+                                    <div style="font-size:12px;">
+                                        <a href="javascript:void(0)" onclick="toggleAllCheckboxes(${appId}, true)" style="color:var(--primary); font-weight:700; margin-left:10px;">تحديد الكل</a>
+                                        <a href="javascript:void(0)" onclick="toggleAllCheckboxes(${appId}, false)" style="color:var(--danger); font-weight:700;">إلغاء الكل</a>
+                                    </div>
                                 </div>
+                                <div class="docs-checklist-grid">
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="commence" checked> مباشرة عمل</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="checklist" checked> قائمة ملف الموظف</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="app_form" checked> استمارة طلب وظيفة + الإقرار</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="contract_pledge" checked> ملحق بالعقد (تعهد حارس أمن)</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="security_pledge" checked> تعهد وإقرار للحراسات الأمنية</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="contract" checked> عقد عمل لمهمة محددة</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="bank_decl" checked> إقرار بالحساب البنكي</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="site_rules" checked> تعليمات الموقع</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="duties" checked> مهام وواجبات رجال الأمن</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="penalties" checked> لائحة الجزاءات</label>
+                                    <label class="doc-check-item"><input type="checkbox" class="cb-doc-${appId}" value="medgulf" checked> الإفصاح الطبي - ميدغلف</label>
+                                </div>
+                                <button type="button" class="btn-primary-red" onclick="generateOfficialDocs(${appId}, 'selected')" style="font-size:13px; padding:7px 16px; margin-top:8px;">
+                                    <i data-lucide="printer"></i> معاينة وطباعة الوثائق المحددة
+                                </button>
                             </div>
-                            <div class="docs-checklist-grid">
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="commence" checked> مباشرة عمل</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="checklist" checked> قائمة ملف الموظف</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="app_form" checked> استمارة طلب وظيفة + الإقرار</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="contract_pledge" checked> ملحق بالعقد (تعهد حارس أمن)</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="security_pledge" checked> تعهد وإقرار للحراسات الأمنية</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="contract" checked> عقد عمل لمهمة محددة</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="bank_decl" checked> إقرار بالحساب البنكي</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="site_rules" checked> تعليمات الموقع</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="duties" checked> مهام وواجبات رجال الأمن</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="penalties" checked> لائحة الجزاءات</label>
-                                <label class="doc-check-item"><input type="checkbox" class="cb-doc-${app.id}" value="medgulf" checked> الإفصاح الطبي - ميدغلف</label>
-                            </div>
-                            <button type="button" class="btn-primary-red" onclick="generateOfficialDocs(${app.id}, 'selected')" style="font-size:13px; padding:7px 16px; margin-top:8px;">
-                                <i data-lucide="printer"></i> معاينة وطباعة الوثائق المحددة
-                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
-    }).join('');
+            `;
+        }).join('');
 
-    if (window.lucide) lucide.createIcons();
+        listContainer.innerHTML = cardsHtml;
+        safeHrRenderIcons();
+    } catch (err) {
+        console.error('Safe caught error in renderApplicationsList:', err);
+    }
 }
 
 function toggleApplicantAccordion(appId) {
@@ -1776,3 +1811,56 @@ function generateOfficialDocs(appId, mode) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
+
+// =========================================================================
+// تشغيل تلقائي وفوري: تصيير فوري للمتقدمين الـ 108 وتحديث حي دون أي انتظار
+// =========================================================================
+(function initHrPortalImmediately() {
+    try {
+        if (!applicationsCache || applicationsCache.length === 0) {
+            applicationsCache = getMockApplications();
+        }
+        if (typeof renderApplicationsList === 'function') {
+            renderApplicationsList();
+        }
+        safeHrRenderIcons();
+    } catch (e) {}
+
+    // تصدير كافة الدوال على كائن window العالمي لضمان وصول أحداث onclick إليها بنسبة 100%
+    if (typeof window !== 'undefined') {
+        window.applicationsCache = applicationsCache;
+        window.loadApplications = loadApplications;
+        window.renderApplicationsList = renderApplicationsList;
+        window.filterApplicationsByStatus = filterApplicationsByStatus;
+        window.filterApplicationsByProject = filterApplicationsByProject;
+        window.resetApplicantFilters = resetApplicantFilters;
+        window.handleApplicationSearch = handleApplicationSearch;
+        window.toggleApplicantAccordion = toggleApplicantAccordion;
+        window.viewAttachment = viewAttachment;
+        window.updateAppStatus = updateAppStatus;
+        window.saveCommenceDate = saveCommenceDate;
+        window.generateOfficialDocs = generateOfficialDocs;
+        window.toggleDocsSelector = toggleDocsSelector;
+        window.toggleAllCheckboxes = toggleAllCheckboxes;
+        window.closeAttachmentModal = closeAttachmentModal;
+        window.closeOfficialDocsModal = closeOfficialDocsModal;
+        window.switchHrSubTab = switchHrSubTab;
+        window.safeHrRenderIcons = safeHrRenderIcons;
+        window.getMockApplications = getMockApplications;
+
+        if (typeof window.addEventListener === 'function') {
+            window.addEventListener('DOMContentLoaded', () => {
+                try {
+                    if (typeof renderApplicationsList === 'function') renderApplicationsList();
+                    if (typeof loadApplications === 'function') loadApplications();
+                } catch (e) {}
+            });
+            window.addEventListener('load', () => {
+                try {
+                    if (typeof renderApplicationsList === 'function') renderApplicationsList();
+                    safeHrRenderIcons();
+                } catch (e) {}
+            });
+        }
+    }
+})();
