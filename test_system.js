@@ -325,6 +325,17 @@ async function runTestSuite() {
             !hrEngineJs.includes('info@3s-secrity.net') && hrEngineJs.includes('info@3s-security.net'),
             'تصحيح البريد الرسمي في تذييل كافة الوثائق المطبوعة (info@3s-security.net)'
         );
+        assertTest(
+            indexHtml.includes('body[data-print-mode="badge"] .main-content-area') &&
+            indexHtml.includes('body[data-print-mode="badge"] #security-badge-print-container') &&
+            indexHtml.includes('generateBadgePrintHtml') &&
+            indexHtml.includes('prepareBadgePrint'),
+            'عزل طباعة البطاقة الأمنية الرسمية حصراً وإخفاء كامل محتوى الصفحة وجداول الرواتب'
+        );
+        assertTest(
+            hrEngineJs.includes('printApplicantSecurityBadge'),
+            'إتاحة زر وخاصية طباعة البطاقة الأمنية لجميع المتقدمين في لوحة الموارد البشرية'
+        );
 
         console.log('\n===============================================================');
         console.log(`📊 النتيجة النهائية للفحص الأوتوماتيكي:`);

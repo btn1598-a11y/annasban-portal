@@ -1610,18 +1610,49 @@
                 padding: 24px !important;
             }
 
-            /* الوضع 4: طباعة البطاقة الأمنية وكشف الموظف */
+            /* الوضع 4: طباعة البطاقة الأمنية الرسمية حصراً (CR80 Standard ID Card) */
+            body[data-print-mode="badge"] .main-content-area,
             body[data-print-mode="badge"] #official-documents-modal,
             body[data-print-mode="badge"] #attachmentModal,
-            body[data-print-mode="badge"] #nafathModal {
+            body[data-print-mode="badge"] #nafathModal,
+            body[data-print-mode="badge"] .top-gov-bar,
+            body[data-print-mode="badge"] .main-header,
+            body[data-print-mode="badge"] .main-footer,
+            body[data-print-mode="badge"] .stepper-nav,
+            body[data-print-mode="badge"] .hero-section,
+            body[data-print-mode="badge"] .official-doc-actions,
+            body[data-print-mode="badge"] button,
+            body[data-print-mode="badge"] .access-btn {
                 display: none !important;
             }
-            body[data-print-mode="badge"] .security-badge-card {
-                border: 2px solid #0f172a !important;
-                box-shadow: none !important;
+
+            body[data-print-mode="badge"] {
                 background: #ffffff !important;
                 color: #0f172a !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .security-badge-print-container {
+                display: none;
+            }
+
+            body[data-print-mode="badge"] #security-badge-print-container {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                max-width: 195mm !important;
+                margin: 0 auto !important;
+                padding: 8mm 5mm !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                box-sizing: border-box !important;
+                page-break-after: avoid !important;
+                break-after: avoid !important;
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
     </style>
@@ -2997,6 +3028,9 @@
         </div>
     </div>
 
+    <!-- 10. حاوية طباعة البطاقة الأمنية الرسمية المعتمدة (Security ID Badge Print Sheet) -->
+    <div class="security-badge-print-container" id="security-badge-print-container" style="display:none;"></div>
+
     <!-- 8. الكود البرمجي التفاعلي والربط مع الخادم الخلفي (JavaScript) -->
     <script>
         // إعداد المتغيرات العامة الأساسية فوراً لمنع أي خطأ تهيئة مسبقة (TDZ)
@@ -3229,20 +3263,247 @@
             safeRenderIcons();
         }
 
+        // --- محرك توليد ورقة طباعة البطاقة الأمنية الرسمية (CR80 Standard ID Card) ---
+        function generateBadgePrintHtml(data) {
+            const today = new Date().toISOString().split('T')[0];
+            const rawNid = String(data.nid || '1089271645').replace(/\*/g, '');
+            const cleanNid = rawNid || '1089271645';
+            const empId = data.empId || 'EMP-1042';
+            const name = data.name || 'عبد الرحمن بن خالد المطيري';
+            const role = data.role || 'مشرف أمن وسلامة ميداني';
+            const location = data.location || 'مجمع وزارة الداخلية - الرياض';
+
+            return `
+            <div style="font-family:'Tajawal', -apple-system, sans-serif; direction:rtl; color:#0f172a; max-width:190mm; margin:0 auto; padding:0;">
+                
+                <!-- الترويسة الرسمية لورقة طباعة البطاقة -->
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #8b1a1a; padding-bottom:12px; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:44px; height:44px; background:#8b1a1a; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:17px; letter-spacing:1px;">
+                            3S
+                            <span style="font-size:7px; font-weight:700; letter-spacing:0.5px;">SECURITY</span>
+                        </div>
+                        <div>
+                            <div style="font-size:14px; font-weight:900; color:#8b1a1a;">شركة النصبان للحراسات الأمنية المدنية الخاصة</div>
+                            <div style="font-size:11px; color:#475569; font-weight:700;">ترخيص وزارة الداخلية - الأمن العام رقم: (214) • س.ت: 1010138495</div>
+                        </div>
+                    </div>
+                    <div style="text-align:left; font-size:10px; color:#475569; line-height:1.4;">
+                        <div><strong>نموذج:</strong> بطاقة عمل وحراسة أمنية معتمدة</div>
+                        <div><strong>المعيار:</strong> CR80 (85.6 × 54.0 مم)</div>
+                        <div><strong>تاريخ الطباعة:</strong> ${today}</div>
+                    </div>
+                </div>
+
+                <!-- إرشادات القص والتغليف الميداني -->
+                <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:6px; padding:6px 12px; margin-bottom:22px; font-size:10.5px; color:#475569; display:flex; justify-content:space-between; align-items:center;">
+                    <span>✂ <strong>إرشادات التجهيز والتغليف:</strong> يتم قص البطاقة بمحاذاة الحدود الخارجية، ثم طيها من الخط المنصف والتغليف الحراري بمقاس CR80 المعتمد.</span>
+                    <span style="font-weight:700; color:#8b1a1a;">تصريح أمني فئة (أ)</span>
+                </div>
+
+                <!-- حاوية البطاقتين: الوجه الأمامي + الوجه الخلفي مع خط الطي -->
+                <div style="display:flex; justify-content:center; align-items:stretch; gap:0; margin:0 auto 24px auto; width: fit-content; background:#ffffff; box-shadow:0 1px 3px rgba(0,0,0,0.08); border-radius:6px; padding:4px;">
+                    
+                    <!-- الوجه الأمامي (Front Card) -->
+                    <div style="width:85.6mm; height:54mm; border:1.5px solid #8b1a1a; border-radius:4mm 0 0 4mm; overflow:hidden; position:relative; background:#ffffff; display:flex; flex-direction:column; box-sizing:border-box;">
+                        
+                        <!-- رأس البطاقة الأمامي -->
+                        <div style="background:#8b1a1a; color:#ffffff; padding:2mm 3.5mm; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                <span style="font-size:8.5pt; font-weight:900; letter-spacing:0.3px;">النصبان للحراسات الأمنية (3S)</span>
+                            </div>
+                            <span style="background:rgba(255,255,255,0.25); color:#ffffff; font-size:6.5pt; font-weight:800; padding:1px 5px; border-radius:3px;">فئة (أ)</span>
+                        </div>
+                        
+                        <!-- شريط ذهبي أمني -->
+                        <div style="height:1.5mm; background:linear-gradient(90deg, #d97706, #fbbf24, #d97706);"></div>
+
+                        <!-- محتوى البطاقة الأمامي -->
+                        <div style="flex:1; padding:2.5mm 3.5mm; display:flex; gap:3mm; align-items:center; background:#ffffff;">
+                            
+                            <!-- صندوق الصورة الرسمية -->
+                            <div style="width:23mm; height:29mm; border:1.2px solid #cbd5e1; border-radius:2mm; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1mm; position:relative; overflow:hidden;">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b1a1a" stroke-width="1.8" style="margin-bottom:2px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                <span style="font-size:6pt; color:#64748b; font-weight:700; line-height:1.1;">صورة رجل الأمن</span>
+                                <span style="font-size:5.5pt; color:#8b1a1a; font-weight:800; margin-top:2px;">معتمد 3S</span>
+                                <div style="position:absolute; bottom:-4px; right:-4px; opacity:0.12; transform:rotate(-20deg);">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="#8b1a1a"><circle cx="12" cy="12" r="10"/></svg>
+                                </div>
+                            </div>
+
+                            <!-- بيانات الموظف الرسمية -->
+                            <div style="flex:1; text-align:right;">
+                                <div style="font-size:9pt; font-weight:900; color:#0f172a; margin-bottom:1mm; line-height:1.2;">${name}</div>
+                                <div style="font-size:7.5pt; font-weight:800; color:#8b1a1a; margin-bottom:2mm;">${role}</div>
+                                
+                                <div style="font-size:6.8pt; line-height:1.45; color:#334155;">
+                                    <div><span style="color:#64748b;">الرقم الوظيفي:</span> <strong style="color:#0f172a; font-family:monospace; font-size:7.5pt;">${empId}</strong></div>
+                                    <div><span style="color:#64748b;">الهوية الوطنية:</span> <strong style="color:#0f172a; font-family:monospace; font-size:7.2pt;">${cleanNid}</strong></div>
+                                    <div><span style="color:#64748b;">فصيلة الدم:</span> <strong style="color:#0f172a;">O+</strong> • <span style="color:#059669; font-weight:800;">✓ لائق أمنياً</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- أسفل البطاقة الأمامية -->
+                        <div style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:1.5mm 3.5mm; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:62mm;">
+                                <span style="font-size:5.5pt; color:#64748b; display:block;">المشروع الميداني المعتمد:</span>
+                                <strong style="font-size:6.5pt; color:#0f172a;">${location}</strong>
+                            </div>
+                            <!-- رمز QR للتحقق الميداني -->
+                            <div style="width:8.5mm; height:8.5mm; background:#ffffff; border:0.5px solid #cbd5e1; border-radius:1px; padding:0.5mm; display:flex; align-items:center; justify-content:center;">
+                                <svg width="26" height="26" viewBox="0 0 36 36" fill="none">
+                                    <rect width="36" height="36" fill="#ffffff"/>
+                                    <path d="M4 4h10v10H4V4zm2 2v6h6V6H6zm16-2h10v10H22V4zm2 2v6h6V6h-6zM4 22h10v10H4V22zm2 2v6h6v-6H6zm16 4h4v4h-4v-4zm6 0h4v4h-4v-4zm-6 6h4v4h-4v-4z" fill="#0f172a"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- خط الطي والتنصيف (Fold Line) -->
+                    <div style="width:0; border-right:1.5px dashed #94a3b8; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <div style="position:absolute; background:#f1f5f9; color:#475569; font-size:6pt; font-weight:700; padding:2px 4px; border-radius:3px; transform:rotate(-90deg); white-space:nowrap; border:0.5px solid #cbd5e1;">
+                            ✂ خط الطي
+                        </div>
+                    </div>
+
+                    <!-- الوجه الخلفي (Back Card) -->
+                    <div style="width:85.6mm; height:54mm; border:1.5px solid #8b1a1a; border-radius:0 4mm 4mm 0; overflow:hidden; position:relative; background:#ffffff; display:flex; flex-direction:column; box-sizing:border-box;">
+                        
+                        <!-- رأس البطاقة الخلفي -->
+                        <div style="background:#1e293b; color:#ffffff; padding:2mm 3.5mm; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:7.5pt; font-weight:800;">تعليمات وضوابط حمل البطاقة الأمنية</span>
+                            <span style="font-size:6pt; color:#cbd5e1; font-weight:700;">ترخيص رقم (214)</span>
+                        </div>
+
+                        <!-- متن التعليمات الأمنية -->
+                        <div style="flex:1; padding:2mm 3.5mm; font-size:5.6pt; line-height:1.35; color:#334155; background:#ffffff;">
+                            <div style="margin-bottom:1.5px;">• هذه البطاقة وثيقة أمنية رسمية صادرة بموجب ترخيص وزارة الداخلية للأمن العام رقم (214)، وتعد عهدة شخصية يحظر إعارتها للغير.</div>
+                            <div style="margin-bottom:1.5px;">• يجب إبراز البطاقة بصفة دائمة وتثبيتها على الزي الرسمي أثناء أداء نوبات الحراسة والتفتيش بالمشروع.</div>
+                            <div style="margin-bottom:1.5px;">• يمنع استخدام هذه البطاقة في غير الأغراض الرسمية الميدانية، وتلغى صلاحيتها بانتهاء عقد العمل.</div>
+                            <div>• في حال العثور على البطاقة، يرجى تسليمها لأقرب مركز شرطة أو الاتصال فوراً بمركز العمليات والتحكم: <strong>920012225</strong>.</div>
+                        </div>
+
+                        <!-- شريط الباركود والتوقيع الرسمي -->
+                        <div style="background:#f8fafc; border-top:1px solid #e2e8f0; padding:1.5mm 3.5mm; display:flex; justify-content:space-between; align-items:center;">
+                            
+                            <!-- باركود أمني SVG تسلسلي -->
+                            <div>
+                                <svg width="85" height="18" viewBox="0 0 120 25">
+                                    <rect x="0" y="0" width="3" height="20" fill="#0f172a"/>
+                                    <rect x="5" y="0" width="1.5" height="20" fill="#0f172a"/>
+                                    <rect x="8" y="0" width="4" height="20" fill="#0f172a"/>
+                                    <rect x="14" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="18" y="0" width="1" height="20" fill="#0f172a"/>
+                                    <rect x="21" y="0" width="3.5" height="20" fill="#0f172a"/>
+                                    <rect x="26" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="30" y="0" width="4" height="20" fill="#0f172a"/>
+                                    <rect x="36" y="0" width="1.5" height="20" fill="#0f172a"/>
+                                    <rect x="39" y="0" width="3" height="20" fill="#0f172a"/>
+                                    <rect x="44" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="48" y="0" width="4" height="20" fill="#0f172a"/>
+                                    <rect x="54" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="58" y="0" width="3.5" height="20" fill="#0f172a"/>
+                                    <rect x="63" y="0" width="1.5" height="20" fill="#0f172a"/>
+                                    <rect x="66" y="0" width="3" height="20" fill="#0f172a"/>
+                                    <rect x="71" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="75" y="0" width="4" height="20" fill="#0f172a"/>
+                                    <rect x="81" y="0" width="1.5" height="20" fill="#0f172a"/>
+                                    <rect x="84" y="0" width="3.5" height="20" fill="#0f172a"/>
+                                    <rect x="89" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="93" y="0" width="3" height="20" fill="#0f172a"/>
+                                    <rect x="98" y="0" width="1.5" height="20" fill="#0f172a"/>
+                                    <rect x="101" y="0" width="4" height="20" fill="#0f172a"/>
+                                    <rect x="107" y="0" width="2" height="20" fill="#0f172a"/>
+                                    <rect x="111" y="0" width="3" height="20" fill="#0f172a"/>
+                                    <rect x="116" y="0" width="2" height="20" fill="#0f172a"/>
+                                </svg>
+                                <div style="font-size:5.5pt; font-family:monospace; color:#475569; text-align:center; letter-spacing:1px;">*${empId}*</div>
+                            </div>
+
+                            <!-- الختم والاعتماد -->
+                            <div style="text-align:left; display:flex; align-items:center; gap:4px;">
+                                <div style="font-size:5.5pt; color:#475569; line-height:1.2; text-align:center;">
+                                    <span>إدارة العمليات الأمنية</span><br>
+                                    <strong style="color:#0f172a;">عبدالرحمن الحاتم</strong>
+                                </div>
+                                <div style="width:20px; height:20px; border:1px solid #8b1a1a; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#8b1a1a; font-size:6px; font-weight:800; transform:rotate(-15deg);">
+                                    ختم 3S
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تذييل الورقة الرسمية وبيانات التحقق الرقمي -->
+                <div style="border-top:1px solid #e2e8f0; padding-top:10px; display:flex; justify-content:space-between; align-items:center; font-size:9.5px; color:#64748b;">
+                    <div>
+                        <strong>التحقق الرقمي:</strong> وثيقة معتمدة ومسجلة في النظام الأمني الموحد لشركة النصبان (رمز التحقق: <span style="font-family:monospace; color:#0f172a;">SEC-${cleanNid.slice(0, 6)}-214</span>)
+                    </div>
+                    <div>
+                        هاتف الطوارئ والعمليات الموحد (24/7): <strong style="color:#8b1a1a;">920012225</strong>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+        window.generateBadgePrintHtml = generateBadgePrintHtml;
+
+        // --- تجهيز محتوى ورقة طباعة البطاقة الأمنية الرسمية ---
+        function prepareBadgePrint(empData) {
+            const container = document.getElementById('security-badge-print-container');
+            if (!container) return;
+
+            let name = empData?.name;
+            let empId = empData?.empId;
+            let nid = empData?.nid;
+            let role = empData?.role;
+            let location = empData?.location;
+
+            if (!name) {
+                const el = document.getElementById('badge_name') || document.getElementById('portal_emp_name');
+                name = (el && el.innerText.trim()) ? el.innerText.trim() : 'عبد الرحمن بن خالد المطيري';
+            }
+            if (!empId) {
+                const el = document.getElementById('badge_emp_id');
+                empId = (el && el.innerText.trim()) ? el.innerText.trim() : 'EMP-1042';
+            }
+            if (!nid) {
+                const el = document.getElementById('badge_nid');
+                nid = (el && el.innerText.trim()) ? el.innerText.trim() : '1089271645';
+            }
+            if (!role) {
+                const el = document.getElementById('badge_role');
+                role = (el && el.innerText.trim()) ? el.innerText.trim() : 'مشرف أمن وسلامة ميداني';
+            }
+            if (!location) {
+                const el = document.getElementById('badge_location');
+                location = (el && el.innerText.trim()) ? el.innerText.trim() : 'مجمع وزارة الداخلية - الرياض';
+            }
+
+            container.innerHTML = generateBadgePrintHtml({ name, empId, nid, role, location });
+        }
+        window.prepareBadgePrint = prepareBadgePrint;
+
         // --- محرك أوامر الطباعة الرسمي الموحد (4 أوضاع طباعة معتمدة) ---
         function printDocumentSection(mode) {
             const targetMode = mode || 'docs';
+            if (targetMode === 'badge') {
+                prepareBadgePrint();
+            }
             document.body.setAttribute('data-print-mode', targetMode);
             const cleanup = () => {
                 document.body.removeAttribute('data-print-mode');
                 window.removeEventListener('afterprint', cleanup);
             };
-            window.addEventListener('afterprint', cleanup);
+            window.addEventListener('afterprint', cleanup, { once: true });
             setTimeout(() => {
                 window.print();
-                setTimeout(cleanup, 600);
-            }, 60);
+                setTimeout(cleanup, 2000);
+            }, 80);
         }
+        window.printDocumentSection = printDocumentSection;
 
         // --- حجز مناوبات منصة مساندة ---
         function bookMusanadahShift(btn, title, reward) {

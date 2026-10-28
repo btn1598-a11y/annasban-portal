@@ -899,6 +899,9 @@ function renderApplicationsList() {
                                 <button type="button" class="btn-secondary-clean" onclick="toggleDocsSelector(${appId})" style="font-size:13.5px; padding:9px 18px;">
                                     <i data-lucide="settings"></i> اختيار النماذج <i data-lucide="chevron-down"></i>
                                 </button>
+                                <button type="button" class="btn-secondary-clean" onclick="printApplicantSecurityBadge(${appId})" style="font-size:13.5px; padding:9px 18px; border-color:var(--primary); color:var(--primary); font-weight:700;">
+                                    <i data-lucide="shield"></i> طباعة البطاقة الأمنية
+                                </button>
                             </div>
 
                             <div id="docs_selector_${appId}" style="display:none; margin-top:12px; border-top:1px dashed var(--border-color); padding-top:14px;">
@@ -1014,6 +1017,31 @@ function closeAttachmentModal() {
     const m = document.getElementById('attachmentModal');
     if (m) m.style.display = 'none';
 }
+
+function printApplicantSecurityBadge(appId) {
+    const app = (typeof applicationsCache !== 'undefined' && applicationsCache.find(a => a.id === appId)) || null;
+    if (app) {
+        const empCode = app.app_id || `EMP-${app.id || 1042}`;
+        const cleanNid = app.national_id || '1089271645';
+        const role = app.job_title || 'ضابط أمن وسلامة ميداني';
+        const location = app.project_name || app.work_location || 'مشروع مجمع وزارة الداخلية - الرياض';
+        if (typeof window.prepareBadgePrint === 'function') {
+            window.prepareBadgePrint({
+                name: app.full_name,
+                empId: empCode,
+                nid: cleanNid,
+                role: role,
+                location: location
+            });
+        }
+    }
+    if (typeof window.printDocumentSection === 'function') {
+        window.printDocumentSection('badge');
+    } else {
+        window.print();
+    }
+}
+window.printApplicantSecurityBadge = printApplicantSecurityBadge;
 
 function getDayArabicName(dateStr) {
     if (!dateStr) return 'الأحد';
