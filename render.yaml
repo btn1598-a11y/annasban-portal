@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: annasban-security-portal
+    env: node
+    plan: free
+    buildCommand: "node -v"
+    startCommand: "node server.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        value: annasban_sec_super_key_2026_prod_99381

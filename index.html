@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركة النصبان للحراسات الأمنية | البوابة الرقمية الموحدة</title>
+    <!-- خط IBM Plex Sans Arabic القياسي للمنصات الحكومية والمؤسسية السعودية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- مكتبة الأيقونات الرسمية Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* الألوان الرسمية المأخوذة من شعار النصبان (درجة الأحمر القرمزي الفاخر) */
+            --primary: #c8102e;
+            --primary-hover: #a80c24;
+            --primary-light: #fef2f2;
+            --primary-border: #fecaca;
+            --primary-focus: rgba(200, 16, 46, 0.15);
+
+            /* ألوان الواجهة الفاتحة الراقية (مستوحاة من الهوية السيادية لـ mod.gov.sa) */
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --bg-hover: #f8fafc;
+
+            /* تدرجات النصوص والحدود */
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --border-light: #edf2f7;
+
+            /* الحالات النظامية */
+            --success: #059669;
+            --success-light: #ecfdf5;
+            --warning: #d97706;
+            --warning-light: #fffbeb;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+
+            /* الظلال والانحناءات */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 1. الشريط العلوي السيادي (Top Verification Bar - mod.gov.sa style) */
+        /* ------------------------------------------------------------- */
+        .top-gov-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            padding: 6px 0;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .top-gov-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .gov-id-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .saudi-emblem {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .saudi-flag-icon {
+            width: 18px;
+            height: 12px;
+            background: #007a3d;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        .accessibility-tools {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .access-btn {
+            background: none;
+            border: none;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .access-btn:hover {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 2. الترويسة الرئيسية وشعار النصبان 3S (Main Navigation Bar)    */
+        /* ------------------------------------------------------------- */
+        .main-header {
+            background: #ffffff;
+            border-bottom: 2px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 84px;
+        }
+
+        .brand-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+        }
+
+        .brand-logo-img {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .brand-license-badge {
+            border-right: 1.5px solid var(--border-color);
+            padding-right: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .license-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 0.2px;
+        }
+
+        .license-num {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .main-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            list-style: none;
+        }
+
+        .nav-item-btn {
+            background: none;
+            border: none;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-heading);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+
+        .nav-item-btn:hover {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .nav-item-btn.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+            font-weight: 700;
+        }
+
+        .nav-item-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .btn-portal-quick {
+            background-color: #ffffff;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            padding: 8px 16px;
+            font-size: 12.5px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-portal-quick:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(200, 16, 46, 0.2);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 3. الواجهة الرئيسية الفاخرة (Hero Section - Light Modern)      */
+        /* ------------------------------------------------------------- */
+        .hero-section {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 52px 0 44px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 880px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary-border);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .hero-title {
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--text-heading);
+            line-height: 1.35;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-title span {
+            color: var(--primary);
+        }
+
+        .hero-description {
+            font-size: 15.5px;
+            color: var(--text-body);
+            line-height: 1.8;
+            margin-bottom: 28px;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-btn-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .btn-primary-red {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(200, 16, 46, 0.25);
+            transition: all 0.2s;
+        }
+
+        .btn-primary-red:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(200, 16, 46, 0.35);
+        }
+
+        .btn-secondary-clean {
+            background: #ffffff;
+            color: var(--text-heading);
+            border: 1.5px solid var(--border-color);
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .btn-secondary-clean:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .hero-features-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px 18px;
+            text-align: right;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            border-top: 3.5px solid transparent;
+        }
+
+        .feature-card:hover {
+            border-top-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-card-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .feature-card h4 {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+
+        .feature-card p {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 4. شريط الإحصائيات الحيوية (Key Metrics Strip)                 */
+        /* ------------------------------------------------------------- */
+        .metrics-bar-section {
+            padding: 28px 0;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .metric-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            border-left: 1px solid var(--border-color);
+        }
+
+        .metric-box:last-child {
+            border-left: none;
+        }
+
+        .metric-box-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .metric-number {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--text-heading);
+            line-height: 1.1;
+        }
+
+        .metric-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 5. الحاوية المركزية والواجهات التفاعلية (Views & Cards)       */
+        /* ------------------------------------------------------------- */
+        .main-content-area {
+            flex: 1;
+            padding: 36px 0 60px;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gov-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .gov-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .gov-card-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gov-card-title i {
+            color: var(--primary);
+        }
+
+        .gov-card-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 6px;
+        }
+
+        .form-label span.req {
+            color: var(--primary);
+        }
+
+        .form-control {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            font-size: 13.5px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #ffffff;
+            color: var(--text-heading);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-focus);
+        }
+
+        .form-control.is-valid {
+            border-color: var(--success);
+            background-color: #f0fdf4;
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--danger);
+            background-color: #fef2f2;
+        }
+
+        .validation-hint {
+            font-size: 11.5px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .validation-hint.valid { color: var(--success); font-weight: 600; }
+        .validation-hint.invalid { color: var(--danger); font-weight: 600; }
+
+        /* شريط الخطوات في منصة التوظيف */
+        .stepper-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .step-pill.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .step-pill.completed {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .step-number-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--bg-subtle);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .step-pill.active .step-number-circle {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .step-pill.completed .step-number-circle {
+            background: var(--success);
+            color: #ffffff;
+        }
+
+        /* بطاقة العمل الأمنية الرسمية */
+        .security-badge-card {
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            width: 320px;
+            position: relative;
+        }
+
+        .badge-top-header {
+            background: var(--primary);
+            color: #ffffff;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-company-name {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-category-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-body {
+            padding: 16px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .badge-photo-box {
+            width: 70px;
+            height: 82px;
+            background: var(--bg-subtle);
+            border: 1.5px dashed var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 9px;
+            text-align: center;
+        }
+
+        .badge-info-details h5 {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin-bottom: 2px;
+        }
+
+        .badge-role-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .badge-meta-row {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .badge-footer-row {
+            background: var(--bg-subtle);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* جداول البيانات الرسمية */
+        .gov-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 12.5px;
+        }
+
+        .gov-table th {
+            background: var(--bg-subtle);
+            color: var(--text-heading);
+            font-weight: 700;
+            padding: 12px 14px;
+            border-bottom: 1.5px solid var(--border-color);
+            text-align: right;
+        }
+
+        .gov-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-body);
+        }
+
+        .gov-table tr:hover td {
+            background-color: var(--primary-light);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* 6. التذييل الرسمي الشامل (Government Style Footer)             */
+        /* ------------------------------------------------------------- */
+        .main-footer {
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
+            padding: 48px 0 24px;
+            margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr repeat(3, 1fr);
+            gap: 32px;
+            margin-bottom: 36px;
+        }
+
+        .footer-brand-desc {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-top: 12px;
+        }
+
+        .footer-col h4 {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-heading);
+            margin-bottom: 14px;
+            position: relative;
+            padding-bottom: 6px;
+        }
+
+        .footer-col h4::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 24px;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .footer-links-list {
+            list-style: none;
+        }
+
+        .footer-links-list li {
+            margin-bottom: 8px;
+        }
+
+        .footer-links-list a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.2s;
+        }
+
+        .footer-links-list a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom-bar {
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* نافذة نفاذ المنبثقة */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            max-width: 440px;
+            width: 90%;
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .nafath-code-display {
+            font-size: 48px;
+            font-weight: 900;
+            color: #047857;
+            background: #ecfdf5;
+            border: 2px dashed #059669;
+            border-radius: 12px;
+            padding: 12px 0;
+            margin: 18px 0;
+            letter-spacing: 6px;
+        }
+
+        /* استجابة الشاشات */
+        @media (max-width: 992px) {
+            .hero-features-row, .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+            #badge-container-grid { grid-template-columns: 1fr !important; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-inner { height: auto; padding: 12px 0; flex-direction: column; gap: 12px; }
+            .main-nav-links { overflow-x: auto; width: 100%; padding-bottom: 6px; justify-content: flex-start; }
+            .hero-title { font-size: 26px; }
+            .hero-features-row, .metrics-grid, .footer-grid { grid-template-columns: 1fr; }
+            .metric-box { border-left: none; border-bottom: 1px solid var(--border-color); }
+        }
+
+        /* ------------------------------------------------------------- */
+        /* زر تبديل الثيم المظلم والنهاري (Theme Toggle Buttons)          */
+        /* ------------------------------------------------------------- */
+        .theme-toggle-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            color: var(--text-heading);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+        }
+
+        .theme-toggle-nav-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: rotate(18deg);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* قواعد وتدرجات الوضع المظلم الكامل (Dark Mode System)           */
+        /* ------------------------------------------------------------- */
+        [data-theme="dark"] {
+            --primary: #f43f5e;
+            --primary-hover: #e11d48;
+            --primary-light: rgba(244, 63, 94, 0.15);
+            --primary-border: rgba(244, 63, 94, 0.35);
+            --primary-focus: rgba(244, 63, 94, 0.25);
+
+            --bg-page: #0b0f19;
+            --bg-card: #131c2e;
+            --bg-subtle: #192436;
+            --bg-hover: #1e2c42;
+
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #243044;
+            --border-light: #1a2538;
+
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 12px 20px -3px rgba(0, 0, 0, 0.6);
+        }
+
+        [data-theme="dark"] .top-gov-bar {
+            background-color: #0c121e;
+            border-color: #243044;
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .main-header {
+            background-color: #111a2a;
+            border-color: #243044;
+        }
+
+        [data-theme="dark"] .hero-section {
+            background: linear-gradient(180deg, #111a2a 0%, #0b0f19 100%);
+            border-color: #243044;
+        }
+
+        [data-theme="dark"] .hero-section::before {
+            background-image: radial-gradient(#243044 1px, transparent 1px);
+            opacity: 0.8;
+        }
+
+        [data-theme="dark"] .metrics-bar-section {
+            background-color: #0e1624;
+            border-color: #243044;
+        }
+
+        [data-theme="dark"] .main-footer {
+            background-color: #0c121e;
+            border-color: #243044;
+        }
+
+        [data-theme="dark"] .form-control {
+            background-color: #152032;
+            color: #f8fafc;
+            border-color: #2b394e;
+        }
+
+        [data-theme="dark"] .form-control:focus {
+            background-color: #1a273d;
+            border-color: var(--primary);
+        }
+
+        [data-theme="dark"] .gov-card,
+        [data-theme="dark"] .feature-card,
+        [data-theme="dark"] .stepper-nav,
+        [data-theme="dark"] .security-badge-card {
+            background-color: #131c2e;
+            border-color: #243044;
+        }
+
+        [data-theme="dark"] .gov-table th {
+            background-color: #182438;
+            color: #f8fafc;
+            border-color: #2b394e;
+        }
+
+        [data-theme="dark"] .gov-table td {
+            border-color: #1f2c42;
+            color: #cbd5e1;
+        }
+
+        [data-theme="dark"] .btn-secondary-clean {
+            background-color: #182438;
+            color: #f8fafc;
+            border-color: #2b394e;
+        }
+
+        [data-theme="dark"] .btn-secondary-clean:hover {
+            background-color: rgba(244, 63, 94, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        [data-theme="dark"] .btn-portal-quick {
+            background-color: transparent;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        [data-theme="dark"] .btn-portal-quick:hover {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .modal-box {
+            background-color: #131c2e;
+            color: #f8fafc;
+            border: 1px solid #2b394e;
+        }
+
+        [data-theme="dark"] .contract-document-paper {
+            background-color: #152032 !important;
+            border-color: #243044 !important;
+            color: #e2e8f0 !important;
+        }
+
+        [data-theme="dark"] .brand-logo-img {
+            filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.18));
+            border-radius: 4px;
+        }
+
+        @media print {
+            .top-gov-bar, .main-header, .main-footer, .stepper-nav, .hero-section { display: none !important; }
+            body { background: #fff !important; }
+            .gov-card { box-shadow: none !important; border: 1px solid #000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. الشريط العلوي السيادي (Top Verification Bar) -->
+    <div class="top-gov-bar">
+        <div class="container top-gov-content">
+            <div class="gov-id-group">
+                <span class="saudi-emblem">
+                    <span class="saudi-flag-icon"></span>
+                    المملكة العربية السعودية
+                </span>
+                <span>•</span>
+                <span>بوابة موثقة وفق ضوابط الهيئة الوطنية للأمن السيبراني (NCA)</span>
+                <span>•</span>
+                <span style="color:var(--primary); font-weight:700;">سيرفرات محلية آمنة (PDPL)</span>
+            </div>
+            <div class="accessibility-tools">
+                <span id="current_live_date">الأربعاء، 17 ربيع الآخر 1448 هـ</span>
+                <span>|</span>
+                <button class="access-btn" onclick="adjustFontSize(1)">A+</button>
+                <button class="access-btn" onclick="adjustFontSize(-1)">A-</button>
+                <span>|</span>
+                <button class="access-btn" id="btn-theme-top" onclick="toggleDarkMode()" style="display:inline-flex; align-items:center; gap:4px; font-weight:700;">
+                    <i data-lucide="moon" id="theme-icon" style="width:12px; height:12px;"></i>
+                    <span id="theme-label">الوضع المظلم</span>
+                </button>
+                <span>|</span>
+                <span>الرقم الموحد: <strong>920012225</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. الترويسة الرئيسية وشعار النصبان 3S -->
+    <header class="main-header">
+        <div class="container nav-inner">
+            <a href="#" class="brand-wrapper" onclick="switchView('landing')">
+                <img src="logo.jpg" alt="شعار شركة النصبان للحراسات الأمنية" class="brand-logo-img">
+                <div class="brand-license-badge">
+                    <span class="license-title">الأمن العام</span>
+                    <span class="license-num">ترخيص رقم 214</span>
+                </div>
+            </a>
+
+            <!-- القوائم الرئيسية المنظمة -->
+            <ul class="main-nav-links">
+                <li><button class="nav-item-btn active" id="btn-tab-landing" onclick="switchView('landing')"><i data-lucide="home"></i> الرئيسية</button></li>
+                <li><button class="nav-item-btn" id="btn-tab-contracts" onclick="switchView('contracts')"><i data-lucide="file-signature"></i> التوظيف والعقود</button></li>
+                <li><button class="nav-item-btn" id="btn-tab-portal" onclick="switchView('portal')"><i data-lucide="user-check"></i> بوابة الموظف الذاتية</button></li>
+                <li><button class="nav-item-btn" id="btn-tab-musanadah" onclick="switchView('musanadah')"><i data-lucide="calendar-plus"></i> منصة مساندة</button></li>
+                <li><button class="nav-item-btn" id="btn-tab-hr" onclick="switchView('hr')"><i data-lucide="shield-check"></i> الإدارة والامتثال</button></li>
+            </ul>
+
+            <div class="header-actions">
+                <button class="theme-toggle-nav-btn" onclick="toggleDarkMode()" title="تبديل الوضع المظلم / النهاري">
+                    <i data-lucide="moon" id="theme-icon-nav" style="width:18px; height:18px;"></i>
+                </button>
+                <button class="btn-portal-quick" onclick="switchView('portal')">
+                    <i data-lucide="lock"></i> الدخول السريع
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. الواجهة الرئيسية (Hero Section) - مستوحاة من mod.gov.sa بنمط فاتح راقٍ -->
+    <section class="hero-section" id="hero-banner">
+        <div class="container hero-content">
+            <div class="hero-kicker">
+                <i data-lucide="award" style="width:14px; height:14px;"></i>
+                <span>شركة النصبان للحراسات الأمنية (3S) — ريادة وتميز في الحماية الميدانية</span>
+            </div>
+            <h1 class="hero-title">
+                المنظومة الرقمية الموحدة للحراسات الأمنية<br>
+                <span>وحماية المنشآت الحيوية والسيادية</span>
+            </h1>
+            <p class="hero-description">
+                بوابة وطنية متكاملة لإدارة الكوادر الأمنية، توثيق عقود العمل إلكترونياً عبر الربط مع المنظومة الوطنية الموحدة (نفاذ)، ومطابقة كاملة للائحة حماية البيانات الشخصية ونظام العمل السعودي.
+            </p>
+            <div class="hero-btn-group">
+                <button class="btn-primary-red" onclick="switchView('contracts')">
+                    <i data-lucide="file-plus"></i> التقديم على الوظائف وتوثيق العقد
+                </button>
+                <button class="btn-secondary-clean" onclick="switchView('portal')">
+                    <i data-lucide="user"></i> بوابة الموظف الميداني
+                </button>
+                <button class="btn-secondary-clean" onclick="switchView('hr')">
+                    <i data-lucide="shield"></i> لوحة إدارة الامتثال والرقابة
+                </button>
+            </div>
+
+            <!-- بطاقات الخدمات الأربع في الواجهة -->
+            <div class="hero-features-row">
+                <div class="feature-card" onclick="switchView('contracts')" style="cursor:pointer;">
+                    <div class="feature-card-icon"><i data-lucide="file-check-2"></i></div>
+                    <h4>عقود العمل الرقمية</h4>
+                    <p>توثيق رقمي فوري للعقود ببصمة تشفير SHA-256 ومطابقة منصة قوى.</p>
+                </div>
+                <div class="feature-card" onclick="switchView('portal')" style="cursor:pointer;">
+                    <div class="feature-card-icon"><i data-lucide="id-card"></i></div>
+                    <h4>بطاقة الحارس الرقمية</h4>
+                    <p>بطاقة عمل ذكية معتمدة مع رمز QR مشفر للتحقق الميداني والتفتيش.</p>
+                </div>
+                <div class="feature-card" onclick="switchView('musanadah')" style="cursor:pointer;">
+                    <div class="feature-card-icon"><i data-lucide="clock"></i></div>
+                    <h4>منصة مساندة</h4>
+                    <p>فرص تغطية الورديات الإضافية بمكافآت مالية فورية للميدان.</p>
+                </div>
+                <div class="feature-card" onclick="switchView('hr')" style="cursor:pointer;">
+                    <div class="feature-card-icon"><i data-lucide="lock"></i></div>
+                    <h4>الامتثال والرقابة (PDPL)</h4>
+                    <p>سجل تدقيق مشفر لكل عملية وصول لبيانات المواطنين الحساسة.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. شريط الإحصائيات الحيوية (Key Metrics Strip) -->
+    <section class="metrics-bar-section">
+        <div class="container metrics-grid">
+            <div class="metric-box">
+                <div class="metric-box-icon"><i data-lucide="users"></i></div>
+                <div>
+                    <div class="metric-number">4,500+</div>
+                    <div class="metric-label">ضابط ومفتش أمن معتمد</div>
+                </div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-box-icon"><i data-lucide="flag"></i></div>
+                <div>
+                    <div class="metric-number">100%</div>
+                    <div class="metric-label">نسبة توطين الحراسات (سعودة كاملة)</div>
+                </div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-box-icon"><i data-lucide="building-2"></i></div>
+                <div>
+                    <div class="metric-number">85+</div>
+                    <div class="metric-label">مشروعاً حيوياً وحكومياً مؤمناً</div>
+                </div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-box-icon"><i data-lucide="shield-check"></i></div>
+                <div>
+                    <div class="metric-number">100%</div>
+                    <div class="metric-label">امتثال لنظام حماية البيانات (PDPL)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. المحتوى الرئيسي والواجهات التفاعلية (Views) -->
+    <main class="main-content-area">
+        <div class="container">
+
+            <!-- ========================================== -->
+            <!-- VIEW 1: LANDING & SERVICES OVERVIEW       -->
+            <!-- ========================================== -->
+            <div id="view-landing" class="view-section active">
+                <div class="gov-card">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="layout-grid"></i> الخدمات الإلكترونية المعتمدة لقطاع الحراسات الأمنية</h3>
+                            <p class="gov-card-subtitle">اختر الخدمة المطلوبة لبدء الإجراء الفوري عبر البوابة الموحدة</p>
+                        </div>
+                    </div>
+                    <div class="form-grid-3">
+                        <div class="feature-card" onclick="switchView('contracts')" style="cursor:pointer;">
+                            <div class="feature-card-icon"><i data-lucide="user-plus"></i></div>
+                            <h4>التقديم على وظائف الحراسات</h4>
+                            <p>تقديم إلكتروني سريع مع التحقق الفوري من الهوية الوطنية وخلو السوابق.</p>
+                        </div>
+                        <div class="feature-card" onclick="switchView('portal')" style="cursor:pointer;">
+                            <div class="feature-card-icon"><i data-lucide="wallet"></i></div>
+                            <h4>مسيرات الرواتب وحماية الأجور (WPS)</h4>
+                            <p>كشوفات تفصيلية للرواتب، البدلات، واستقطاعات التأمينات الاجتماعية (GOSI).</p>
+                        </div>
+                        <div class="feature-card" onclick="switchView('musanadah')" style="cursor:pointer;">
+                            <div class="feature-card-icon"><i data-lucide="calendar"></i></div>
+                            <h4>جدولة المناوبات والورديات</h4>
+                            <p>متابعة مواقع الخدمة الميدانية، الورديات الصباحية والمسائية، وحجز الشواغر.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 2: CONTRACTS & RECRUITMENT STEPPER   -->
+            <!-- ========================================== -->
+            <div id="view-contracts" class="view-section">
+                <!-- شريط الخطوات الست -->
+                <div class="stepper-nav" id="stepperNav">
+                    <div class="step-pill active" id="st-1"><span class="step-number-circle">1</span> البيانات الشخصية</div>
+                    <div class="step-pill" id="st-2"><span class="step-number-circle">2</span> المؤهلات والخبرة</div>
+                    <div class="step-pill" id="st-3"><span class="step-number-circle">3</span> الوظيفة والمشروع</div>
+                    <div class="step-pill" id="st-4"><span class="step-number-circle">4</span> الحساب البنكي (IBAN)</div>
+                    <div class="step-pill" id="st-5"><span class="step-number-circle">5</span> توثيق نفاذ الوطني</div>
+                    <div class="step-pill" id="st-6"><span class="step-number-circle">6</span> اعتماد العقد الرقمي</div>
+                </div>
+
+                <!-- Step 1: Personal Info -->
+                <div class="gov-card" id="step-content-1">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="user"></i> المرحلة الأولى: البيانات الشخصية للمرشح الأمني</h3>
+                            <p class="gov-card-subtitle">يرجى إدخال البيانات الرسمية المطابقة لبطاقة الهوية الوطنية</p>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">الاسم الرباعي كاملاً <span class="req">*</span></label>
+                            <input type="text" id="app_name" class="form-control" placeholder="محمد عبدالله صالح القحطاني" value="محمد عبدالله القحطاني">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">رقم الهوية الوطنية (10 أرقام) <span class="req">*</span></label>
+                            <input type="text" id="app_id" class="form-control" placeholder="10xxxxxxxx" maxlength="10" oninput="validateSaudiID(this)" value="1089271645">
+                            <div id="id_feedback" class="validation-hint valid">✓ رقم هوية وطنية معتمد ونظامي (Luhn Verified)</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">رقم الجوال السعودي <span class="req">*</span></label>
+                            <input type="tel" id="app_mobile" class="form-control" placeholder="05xxxxxxxx" maxlength="10" oninput="validateSaudiMobile(this)" value="0551234567" dir="ltr">
+                            <div id="mobile_feedback" class="validation-hint valid">✓ رقم جوال سعودي صحيح</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">المدينة ومقر السكن</label>
+                            <input type="text" id="app_address" class="form-control" placeholder="الرياض، حي الملز" value="الرياض">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+                        <button class="btn-primary-red" onclick="goToStep(2)">المتابعة للمؤهلات <i data-lucide="arrow-left"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Qualifications -->
+                <div class="gov-card" id="step-content-2" style="display:none;">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="graduation-cap"></i> المرحلة الثانية: المؤهلات والدورات الأمنية</h3>
+                            <p class="gov-card-subtitle">اشتراطات لائحة الهيئة العليا للأمن الصناعي والأمن العام</p>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">المؤهل التعليمي</label>
+                            <select id="app_qualification" class="form-control">
+                                <option>ثانوية عامة أو ما يعادلها</option>
+                                <option>دبلوم كلية تقنية / أمن وسلامة</option>
+                                <option>شهادة جامعية (بكالوريوس)</option>
+                                <option>كفاءة متوسطة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">سنوات الخبرة في الحراسات الأمنية</label>
+                            <select id="app_exp_years" class="form-control">
+                                <option>سنة إلى سنتين</option>
+                                <option selected>3 إلى 5 سنوات</option>
+                                <option>أكثر من 5 سنوات</option>
+                                <option>مستجد (بدون خبرة سابقة)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">الدورات التخصصية المعتمدة</label>
+                            <input type="text" class="form-control" placeholder="دورة حراسات أمنية تأسيسية، دفاع مدني وإطفاء، إسعافات أولية" value="دورة حراسات أمنية تأسيسية + سلامة وإطفاء">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                        <button class="btn-secondary-clean" onclick="goToStep(1)"><i data-lucide="arrow-right"></i> السابق</button>
+                        <button class="btn-primary-red" onclick="goToStep(3)">المتابعة للمشروع والراتب <i data-lucide="arrow-left"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Job Role & Salary -->
+                <div class="gov-card" id="step-content-3" style="display:none;">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="briefcase"></i> المرحلة الثالثة: تحديد المسمى الوظيفي وسلم الرواتب</h3>
+                            <p class="gov-card-subtitle">مطابق لقرار وزارة الموارد البشرية (الحد الأدنى 4,000 ر.س لاحتساب التوطين)</p>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">المسمى الوظيفي المعتمد</label>
+                            <select id="app_job_role" class="form-control" onchange="updateSalaryBreakdown(this.value)">
+                                <option value="مشرف أمن وسلامة" selected>مشرف أمن وسلامة ميداني</option>
+                                <option value="ضابط أمن">ضابط أمن وحراسة</option>
+                                <option value="مشرف عمليات أمنية">مشرف غرفة عمليات وتحكم</option>
+                                <option value="مدير مشروع أمن">مدير مشروع أمني</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">المشروع الميداني المخصص</label>
+                            <select id="app_project" class="form-control">
+                                <option selected>مشروع مجمع وزارة الداخلية - الرياض</option>
+                                <option>مركز الملك عبدالله المالي (KAFD)</option>
+                                <option>مشروع المربع الجديد (New Murabba)</option>
+                                <option>مشروع قطار الرياض (محطة العليا)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- تفصيل الراتب -->
+                    <div style="background:var(--bg-subtle); border-radius:var(--radius-md); padding:18px; margin-top:12px;">
+                        <h4 style="font-size:13px; font-weight:800; color:var(--text-heading); margin-bottom:12px;">تفصيل الراتب الشهري الإجمالي (قبل خصم التأمينات):</h4>
+                        <div class="form-grid-3" style="font-size:12.5px;">
+                            <div>الراتب الأساسي: <strong id="sal_basic" style="color:var(--text-heading);">4,500 ر.س</strong></div>
+                            <div>بدل السكن: <strong id="sal_housing" style="color:var(--text-heading);">1,125 ر.س</strong></div>
+                            <div>بدل النقل: <strong id="sal_transport" style="color:var(--text-heading);">500 ر.س</strong></div>
+                        </div>
+                        <div style="border-top:1px solid var(--border-color); margin-top:12px; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:13px; font-weight:700;">الراتب الإجمالي المعتمد في العقد:</span>
+                            <strong id="sal_total" style="font-size:18px; color:var(--primary); font-weight:900;">6,125 ر.س</strong>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                        <button class="btn-secondary-clean" onclick="goToStep(2)"><i data-lucide="arrow-right"></i> السابق</button>
+                        <button class="btn-primary-red" onclick="goToStep(4)">المتابعة للحساب البنكي <i data-lucide="arrow-left"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Bank Account (IBAN) -->
+                <div class="gov-card" id="step-content-4" style="display:none;">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="credit-card"></i> المرحلة الرابعة: الحساب البنكي المعتمد لحماية الأجور (WPS)</h3>
+                            <p class="gov-card-subtitle">التحقق الدولي وفق معيار ISO 7064 Mod 97-10 والربط مع البنك المركزي السعودي (SAMA)</p>
+                        </div>
+                    </div>
+                    <div class="form-grid-2">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">رقم الآيبان البنكي (يبدأ بـ SA ويتكون من 24 خانة) <span class="req">*</span></label>
+                            <input type="text" id="app_iban" class="form-control" placeholder="SA0380000000608010167519" maxlength="24" oninput="validateSaudiIBAN(this)" value="SA0380000000608010167519" dir="ltr" style="letter-spacing:1.5px; font-weight:700;">
+                            <div id="iban_feedback" class="validation-hint valid">✓ آيبان معتمد وصحيح تابع لـ (مصرف الراجحي)</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">البنك المصدر</label>
+                            <input type="text" id="app_bank_name" class="form-control" value="مصرف الراجحي" readonly style="background:var(--bg-subtle);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">حالة التحقق البنكي</label>
+                            <div style="display:flex; align-items:center; gap:8px; height:44px; color:var(--success); font-weight:700; font-size:13px;">
+                                <i data-lucide="check-circle-2"></i> متوافق مع نظام حماية الأجور (WPS)
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                        <button class="btn-secondary-clean" onclick="goToStep(3)"><i data-lucide="arrow-right"></i> السابق</button>
+                        <button class="btn-primary-red" onclick="goToStep(5)">المتابعة لتوثيق نفاذ <i data-lucide="arrow-left"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 5: Nafath Authentication -->
+                <div class="gov-card" id="step-content-5" style="display:none;">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="fingerprint"></i> المرحلة الخامسة: التوثيق الرقمي الموحد (نفاذ)</h3>
+                            <p class="gov-card-subtitle">الربط الآمن للتحقق من هوية المواطن عبر الهيئة السعودية للبيانات والذكاء الاصطناعي (سدايا)</p>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align:center; padding:30px 10px;" id="nafath_status_unverified">
+                        <div style="width:68px; height:68px; border-radius:50%; background:#ecfdf5; color:#059669; display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+                            <i data-lucide="shield-check" style="width:36px; height:36px;"></i>
+                        </div>
+                        <h4 style="font-size:18px; font-weight:800; color:var(--text-heading); margin-bottom:8px;">إصدار رمز المطابقة في تطبيق نفاذ</h4>
+                        <p style="font-size:13.5px; color:var(--text-muted); max-width:480px; margin:0 auto 20px;">
+                            سيقوم النظام بإنشاء معاملة تحقق رقمية، يرجى فتح تطبيق نفاذ على هاتفك المحمول واختيار الرمز الذي سيظهر على الشاشة.
+                        </p>
+                        <button class="btn-primary-red" onclick="openNafathModal()" style="font-size:15px; padding:12px 28px;">
+                            <i data-lucide="smartphone"></i> بدء التحقق عبر نفاذ الوطني
+                        </button>
+                    </div>
+
+                    <!-- Verified State -->
+                    <div style="display:none; text-align:center; padding:20px 10px 10px;" id="nafath_status_verified">
+                        <div style="width:58px; height:58px; border-radius:50%; background:#ecfdf5; color:#059669; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+                            <i data-lucide="check" style="width:32px; height:32px;"></i>
+                        </div>
+                        <h4 style="font-size:17px; font-weight:800; color:#047857; margin-bottom:4px;">تم التوثيق الرقمي بنجاح عبر نفاذ الوطني</h4>
+                        <p style="font-size:12px; color:var(--text-muted);" id="nafath_timestamp_label">تم التوثيق والاعتماد بمطابقة الهوية الوطنية</p>
+                    </div>
+
+                    <!-- Interactive Signature Pad (الرسم باليد أو اللمس) -->
+                    <div style="background:#ffffff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:18px; margin:18px 0; text-align:right;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <label class="form-label" style="margin:0;"><i data-lucide="pen-tool"></i> التوقيع اليدوي للمرشح (باللمس على الجوال أو بالفأرة):</label>
+                            <button type="button" class="access-btn" onclick="clearSignatureCanvas()" style="color:var(--danger); font-size:11px;">
+                                <i data-lucide="rotate-ccw"></i> إعادة التوقيع
+                            </button>
+                        </div>
+                        <div style="border:2px dashed var(--border-color); border-radius:var(--radius-sm); background:#fafafa; height:120px; position:relative; overflow:hidden;">
+                            <canvas id="sigCanvas" style="width:100%; height:100%; cursor:crosshair; touch-action:none;"></canvas>
+                            <span id="sigPlaceholder" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#94a3b8; font-size:12px; pointer-events:none;">
+                                وقع هنا بإصبعك على شاشة الجوال أو بالفأرة
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                        <button class="btn-secondary-clean" onclick="goToStep(4)"><i data-lucide="arrow-right"></i> السابق</button>
+                        <button class="btn-primary-red" id="btn_to_step6" onclick="goToStep(6)" disabled style="opacity:0.5;">معاينة وتوقيع العقد <i data-lucide="arrow-left"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 6: Final Contract -->
+                <div class="gov-card" id="step-content-6" style="display:none;">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="file-check"></i> المرحلة السادسة: عقد العمل الموحد المعتمد رقمياً</h3>
+                            <p class="gov-card-subtitle">وثيقة عمل رسمية ملزمة بموجب المادة 51 من نظام العمل ولائحته التنفيذية</p>
+                        </div>
+                        <button class="btn-secondary-clean" onclick="window.print()"><i data-lucide="printer"></i> طباعة العقد الرسمي</button>
+                    </div>
+
+                    <!-- Contract Document Paper -->
+                    <div class="contract-document-paper" style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:32px; box-shadow:var(--shadow-sm); line-height:1.9; font-size:13px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--primary); padding-bottom:16px; margin-bottom:24px;">
+                            <div>
+                                <h3 style="font-size:17px; font-weight:900; color:var(--text-heading);">عقد عمل حراسات أمنية مدنية خاصة</h3>
+                                <span style="font-size:11px; color:var(--text-muted);">رقم الوثيقة: <strong id="contract_ref" style="color:var(--primary);">ANS-2026-CT-1042</strong></span>
+                            </div>
+                            <div style="text-align:left;">
+                                <span style="display:block; font-size:11px; font-weight:700; color:#059669;">✓ موثق عبر نفاذ الوطني</span>
+                                <span style="font-size:10px; color:var(--text-muted);" id="c_seal_code">SHA256-5313111aed7c...</span>
+                            </div>
+                        </div>
+
+                        <p><strong>الطرف الأول:</strong> شركة النصبان للحراسات الأمنية (سجل تجاري 1010041235 - ترخيص الأمن العام 214)، ومقرها الرئيسي: الرياض.</p>
+                        <p><strong>الطرف الثاني (الموظف):</strong> السيد/ <strong id="c_name">محمد عبدالله القحطاني</strong>، بطاقة هوية وطنية رقم (<strong id="c_id">1089271645</strong>)، هاتف (<span id="c_mobile" dir="ltr">0551234567</span>).</p>
+                        <p><strong>المسمى الوظيفي:</strong> <strong id="c_role" style="color:var(--primary);">مشرف أمن وسلامة ميداني</strong> | <strong>الموقع الميداني:</strong> <span id="c_project">مشروع مجمع وزارة الداخلية - الرياض</span>.</p>
+                        <p><strong>الأجر الشهري الإجمالي:</strong> مبلغ وقدره (<strong id="c_salary" style="color:var(--primary);">6,125 ر.س</strong>) يُودع شهرياً عبر نظام حماية الأجور (WPS) على الحساب البنكي (<span id="c_iban" dir="ltr">SA0380000000608010167519</span>) لدى (<span id="c_bank">مصرف الراجحي</span>).</p>
+                        <p><strong>فترة التجربة:</strong> تسعون (90) يوماً ميلادياً تبدأ من تاريخ مباشرة العمل الفعلي طبقاً لأحكام المادة (53) من نظام العمل السعودي.</p>
+                        <p><strong>التوقيع الرقمي:</strong> تم إبرام هذا العقد إلكترونياً وتوثيقه بالبصمة الحيوية الرقمية عبر منصة نفاذ الوطنية وتطبيق معايير التشفير القياسية المعتمدة.</p>
+
+                        <!-- كتلة التوقيعات المزدوجة الرسمية -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; border-top:1.5px solid var(--border-color); margin-top:24px; padding-top:20px;">
+                            <!-- الطرف الأول: الشركة -->
+                            <div style="text-align:center; padding:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                                <strong style="display:block; font-size:12px; color:var(--text-heading); margin-bottom:6px;">الطرف الأول (شركة النصبان للحراسات الأمنية 3S)</strong>
+                                <div style="display:inline-block; border:2px solid var(--primary); padding:6px 14px; border-radius:8px; color:var(--primary); font-weight:800; font-size:11px; margin:6px 0;">
+                                    ختم رسمي معتمد<br>
+                                    ترخيص الأمن العام رقم 214
+                                </div>
+                                <span style="display:block; font-size:10.5px; color:var(--text-muted);">عن الشركة: إدارة الموارد البشرية والعمليات</span>
+                            </div>
+
+                            <!-- الطرف الثاني: الموظف -->
+                            <div style="text-align:center; padding:12px; background:var(--bg-subtle); border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+                                <strong style="display:block; font-size:12px; color:var(--text-heading); margin-bottom:6px;">الطرف الثاني (الموظف)</strong>
+                                <div style="height:60px; display:flex; align-items:center; justify-content:center; margin:6px 0;" id="contract_sig_box">
+                                    <span style="font-size:18px; color:#0f172a; font-weight:700;" id="contract_typed_fallback">محمد عبدالله القحطاني</span>
+                                </div>
+                                <span style="display:block; font-size:10.5px; color:var(--text-muted);" id="contract_sig_status">✓ توقيع يدوي ورقمي موثق بنفاذ</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; margin-top:24px;">
+                        <button class="btn-secondary-clean" onclick="goToStep(5)"><i data-lucide="arrow-right"></i> مراجعة البيانات</button>
+                        <button class="btn-primary-red" onclick="alert('تهانينا! تم اعتماد العقد الوظيفي وإشعار إدارة العمليات والموارد البشرية.')">
+                            <i data-lucide="check-circle"></i> تأكيد وحفظ العقد النهائي
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 3: EMPLOYEE SELF-SERVICE PORTAL       -->
+            <!-- ========================================== -->
+            <div id="view-portal" class="view-section">
+                <!-- Login Box -->
+                <div style="max-width: 460px; margin: 20px auto;" id="portal-login-box">
+                    <div class="gov-card" style="border-top:4px solid var(--primary);">
+                        <div style="text-align:center; margin-bottom:24px;">
+                            <div style="width:56px; height:56px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+                                <i data-lucide="user-check" style="width:28px; height:28px;"></i>
+                            </div>
+                            <h3 style="font-size:20px; font-weight:800; color:var(--text-heading);">بوابة الموظف الذاتية</h3>
+                            <p style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">دخول ضباط ومشرفي الحراسات الأمنية المعتمدين</p>
+                        </div>
+
+                        <form onsubmit="handleEmployeeLogin(event)">
+                            <div class="form-group">
+                                <label class="form-label">الرقم الوظيفي</label>
+                                <input type="text" id="emp_login_num" class="form-control" placeholder="EMP-1042" value="EMP-1042" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">رقم الهوية الوطنية</label>
+                                <input type="text" id="emp_login_id" class="form-control" placeholder="1089271645" value="1089271645" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">كلمة المرور</label>
+                                <input type="password" id="emp_login_pass" class="form-control" placeholder="••••••••" value="12345678" required>
+                            </div>
+                            <!-- Captcha -->
+                            <div style="background:var(--bg-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:12.5px; font-weight:700;">التحقق الأمني: كم حاصل 4 + 3 ؟</span>
+                                <input type="number" id="captcha_answer" class="form-control" style="width:70px; text-align:center;" value="7" required>
+                            </div>
+                            <button type="submit" class="btn-primary-red" style="width:100%; justify-content:center;">
+                                <i data-lucide="log-in"></i> تسجيل الدخول الآمن
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Inner Portal Dashboard -->
+                <div id="portal-dashboard" style="display:none;">
+                    <div class="gov-card">
+                        <div class="gov-card-header">
+                            <div style="display:flex; align-items:center; gap:16px;">
+                                <div style="width:48px; height:48px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px;">
+                                    ع.م
+                                </div>
+                                <div>
+                                    <h3 style="font-size:17px; font-weight:800; color:var(--text-heading);">عبد الرحمن بن خالد المطيري</h3>
+                                    <p style="font-size:12px; color:var(--text-muted);">مشرف أمن وسلامة ميداني • مشروع مجمع وزارة الداخلية • الرقم: EMP-1042</p>
+                                </div>
+                            </div>
+                            <button class="btn-secondary-clean" onclick="logoutEmployee()"><i data-lucide="log-out"></i> خروج</button>
+                        </div>
+
+                        <!-- Grid: Security ID Badge + Payslips -->
+                        <div style="display:grid; grid-template-columns: 320px 1fr; gap:24px;" id="badge-container-grid">
+                            
+                            <!-- Digital Security ID Badge (CR80 Style) -->
+                            <div>
+                                <h4 style="font-size:13px; font-weight:800; color:var(--text-heading); margin-bottom:10px;">بطاقة العمل الأمنية الرسمية</h4>
+                                <div class="security-badge-card">
+                                    <div class="badge-top-header">
+                                        <span class="badge-company-name">النصبان للحراسات الأمنية (3S)</span>
+                                        <span class="badge-category-tag">تصريح فئة (أ)</span>
+                                    </div>
+                                    <div class="badge-body">
+                                        <div class="badge-photo-box">
+                                            <i data-lucide="shield" style="width:28px; height:28px; color:var(--primary); margin-bottom:4px;"></i>
+                                            <span>صورة رسمية</span>
+                                        </div>
+                                        <div class="badge-info-details">
+                                            <h5 id="badge_name">عبد الرحمن خالد المطيري</h5>
+                                            <span class="badge-role-title" id="badge_role">مشرف أمن وسلامة</span>
+                                            <div class="badge-meta-row">
+                                                <span>الرقم: </span><strong id="badge_emp_id">EMP-1042</strong><br>
+                                                <span>الهوية: </span><strong id="badge_nid">1089****45</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="badge-footer-row">
+                                        <div>
+                                            <span style="font-size:9.5px; color:var(--text-muted); display:block;">المشروع الميداني المعتمد:</span>
+                                            <strong style="font-size:10.5px; color:var(--text-heading);" id="badge_location">مجمع وزارة الداخلية - الرياض</strong>
+                                        </div>
+                                        <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+                                            <rect width="36" height="36" fill="#f8fafc"/>
+                                            <path d="M4 4h10v10H4V4zm2 2v6h6V6H6zm16-2h10v10H22V4zm2 2v6h6V6h-6zM4 22h10v10H4V22zm2 2v6h6v-6H6zm16 4h4v4h-4v-4zm6 0h4v4h-4v-4zm-6 6h4v4h-4v-4z" fill="#0f172a"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <button class="btn-secondary-clean" style="width:100%; margin-top:10px; font-size:12px; justify-content:center;" onclick="window.print()">
+                                    <i data-lucide="printer"></i> طباعة البطاقة الأمنية
+                                </button>
+                            </div>
+
+                            <!-- Pay Slips & GOSI Table -->
+                            <div>
+                                <h4 style="font-size:13px; font-weight:800; color:var(--text-heading); margin-bottom:10px;">كشف مسيرات الرواتب والاستحقاق المالي (WPS)</h4>
+                                <div style="overflow-x:auto;">
+                                    <table class="gov-table">
+                                        <thead>
+                                            <tr>
+                                                <th>الشهر</th>
+                                                <th>الأساسي</th>
+                                                <th>بدل سكن ونقل</th>
+                                                <th>إضافي مساندة</th>
+                                                <th>التأمينات (GOSI)</th>
+                                                <th>صافي التحويل</th>
+                                                <th>الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="emp_payslip_table">
+                                            <tr>
+                                                <td><strong>سبتمبر 2026</strong></td>
+                                                <td>4,500 ر.س</td>
+                                                <td>1,625 ر.س</td>
+                                                <td style="color:var(--success); font-weight:700;">+450 ر.س</td>
+                                                <td style="color:var(--danger);">-548.44 ر.س</td>
+                                                <td style="font-weight:900; color:var(--primary);">6,026.56 ر.س</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>أغسطس 2026</strong></td>
+                                                <td>4,500 ر.س</td>
+                                                <td>1,625 ر.س</td>
+                                                <td>0.00 ر.س</td>
+                                                <td style="color:var(--danger);">-548.44 ر.س</td>
+                                                <td style="font-weight:900; color:var(--primary);">5,576.56 ر.س</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 4: MUSANADAH PLATFORM                -->
+            <!-- ========================================== -->
+            <div id="view-musanadah" class="view-section">
+                <div class="gov-card">
+                    <div class="gov-card-header">
+                        <div>
+                            <h3 class="gov-card-title"><i data-lucide="calendar-check"></i> منصة مساندة — فرص تغطية الورديات الأمنية الإضافية</h3>
+                            <p class="gov-card-subtitle">مناوبات أمنية إضافية بمكافآت فورية معتمدة وفق المادة 107 من نظام العمل</p>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        <div style="background:#ffffff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:var(--primary-light); color:var(--primary); padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">مطلوب فوري اليوم</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تغطية وردية مسائية — مشروع المربع الجديد</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">اليوم • من 3:00 عصراً حتى 11:00 مساءً (8 ساعات) • البوابة الشمالية</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">250 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="alert('تم تسجيل طلبك لتغطية الوردية، وسيصلك إشعار الموافقة خلال 15 دقيقة.')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div style="background:#ffffff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:#ecfdf5; color:#065f46; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">غداً الجمعة</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تغطية وردية ليلية — مركز الملك عبدالله المالي (KAFD)</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">غداً • من 11:00 ليلاً حتى 7:00 صباحاً (8 ساعات) • غرفة العمليات والمراقبة</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">280 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="alert('تم تسجيل طلبك لحجز المناوبة.')">حجز المناوبة</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- VIEW 5: HR DASHBOARD & PDPL AUDIT LOGS     -->
+            <!-- ========================================== -->
+            <div id="view-hr" class="view-section">
+                <!-- HR Login Form -->
+                <div style="max-width: 440px; margin: 30px auto;" id="hr-login-box">
+                    <div class="gov-card" style="border-top:4px solid var(--primary);">
+                        <div style="text-align:center; margin-bottom:20px;">
+                            <div style="width:54px; height:54px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">
+                                <i data-lucide="shield-check" style="width:28px; height:28px;"></i>
+                            </div>
+                            <h3 style="font-size:19px; font-weight:800; color:var(--text-heading);">دخول مسؤولي الموارد البشرية</h3>
+                            <p style="font-size:12px; color:var(--text-muted);">الوصول المشفر للوحة إدارة العقود وسجلات الامتثال (PDPL)</p>
+                        </div>
+                        <form onsubmit="handleHrLogin(event)">
+                            <div class="form-group">
+                                <label class="form-label">اسم المستخدم الإداري</label>
+                                <input type="text" id="hr_user" class="form-control" value="hr_manager" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">كلمة المرور المشفرة</label>
+                                <input type="password" id="hr_pass" class="form-control" value="Annasban@2026" required>
+                            </div>
+                            <button type="submit" class="btn-primary-red" style="width:100%; justify-content:center;">
+                                <i data-lucide="shield"></i> تسجيل الدخول المصرح
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- HR Main Dashboard -->
+                <div id="hr-main-dashboard" style="display:none;">
+                    <div class="gov-card">
+                        <div class="gov-card-header">
+                            <div>
+                                <h3 class="gov-card-title"><i data-lucide="shield-alert"></i> لوحة إدارة الامتثال والرقابة الأمنية (PDPL Audit Engine)</h3>
+                                <p class="gov-card-subtitle">متابعة فورية وموثقة لكافة عمليات قراءة وتعديل بيانات المواطنين طبقا لنظام حماية البيانات الشخصية</p>
+                            </div>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-secondary-clean" onclick="loadLiveAuditLogs()"><i data-lucide="refresh-cw"></i> تحديث</button>
+                                <button class="btn-secondary-clean" onclick="exportAuditLogsToCsv()"><i data-lucide="download"></i> تصدير CSV</button>
+                                <button class="btn-secondary-clean" onclick="logoutHr()"><i data-lucide="log-out"></i> خروج</button>
+                            </div>
+                        </div>
+
+                        <!-- Live Metrics -->
+                        <div class="metrics-grid" style="margin-bottom:24px;">
+                            <div class="metric-box" style="padding:12px;">
+                                <div>
+                                    <div class="metric-number" style="font-size:22px; color:var(--primary);">100%</div>
+                                    <div class="metric-label">التوطين الميداني (نطاق بلاتيني)</div>
+                                </div>
+                            </div>
+                            <div class="metric-box" style="padding:12px;">
+                                <div>
+                                    <div class="metric-number" style="font-size:22px; color:#059669;">12</div>
+                                    <div class="metric-label">عقود موثقة عبر نفاذ</div>
+                                </div>
+                            </div>
+                            <div class="metric-box" style="padding:12px;">
+                                <div>
+                                    <div class="metric-number" style="font-size:22px;">0</div>
+                                    <div class="metric-label">مخالفات أمنية مسجلة</div>
+                                </div>
+                            </div>
+                            <div class="metric-box" style="padding:12px;">
+                                <div>
+                                    <div class="metric-number" style="font-size:22px;">4,500+</div>
+                                    <div class="metric-label">إجمالي الكوادر الميدانية</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Logs Table -->
+                        <div style="overflow-x:auto;">
+                            <table class="gov-table">
+                                <thead>
+                                    <tr>
+                                        <th>الوقت والختم الزمني</th>
+                                        <th>المستخدم المسؤول</th>
+                                        <th>الصلاحية</th>
+                                        <th>نوع الإجراء</th>
+                                        <th>المورد المستهدف</th>
+                                        <th>عنوان الـ IP</th>
+                                        <th>المستوى</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hr_audit_logs_table">
+                                    <tr>
+                                        <td>2026-10-28 10:00:15</td>
+                                        <td>سلطان بن إبراهيم المنصور</td>
+                                        <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">HR Manager</span></td>
+                                        <td><code>AUTH_LOGIN_SUCCESS</code></td>
+                                        <td>HR_PORTAL</td>
+                                        <td>127.0.0.1</td>
+                                        <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">INFO</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-10-28 09:55:40</td>
+                                        <td>عبد الرحمن خالد المطيري</td>
+                                        <td><span style="background:var(--bg-subtle); color:var(--text-heading); padding:2px 6px; border-radius:4px; font-weight:700;">EMPLOYEE</span></td>
+                                        <td><code>CONTRACT_SIGNED_PDPL</code></td>
+                                        <td>CONTRACT_ANS-2026</td>
+                                        <td>127.0.0.1</td>
+                                        <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">INFO</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 6. التذييل الرسمي الشامل (Government Style Comprehensive Footer) -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <img src="logo.jpg" alt="شعار شركة النصبان للحراسات الأمنية" style="height:46px; object-fit:contain;">
+                    <p class="footer-brand-desc">
+                        شركة النصبان للحراسات الأمنية (3S) — ترخيص وزارة الداخلية والأمن العام رقم (214). ريادة في توفير الحلول الأمنية المتطورة للمنشآت الحيوية والمشاريع السيادية بالمملكة.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4>الخدمات الإلكترونية</h4>
+                    <ul class="footer-links-list">
+                        <li><a href="#" onclick="switchView('contracts')">بوابة التوظيف والعقود</a></li>
+                        <li><a href="#" onclick="switchView('portal')">بوابة الموظف الذاتية</a></li>
+                        <li><a href="#" onclick="switchView('musanadah')">منصة مساندة للورديات</a></li>
+                        <li><a href="#" onclick="switchView('hr')">لوحة الرقابة والامتثال</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>الأنظمة واللوائح</h4>
+                    <ul class="footer-links-list">
+                        <li><a href="#">نظام الحراسة الأمنية المدنية الخاصة</a></li>
+                        <li><a href="#">نظام العمل السعودي ولائحته التنفيذية</a></li>
+                        <li><a href="#">نظام حماية البيانات الشخصية (PDPL)</a></li>
+                        <li><a href="#">ضوابط الأمن السيبراني (NCA)</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>التواصل والدعم</h4>
+                    <ul class="footer-links-list">
+                        <li>الرقم الموحد: 920012225</li>
+                        <li>البريد الإلكتروني: info@annasban.com.sa</li>
+                        <li>العنوان: الرياض، حي الملز، طريق صلاح الدين</li>
+                        <li>غرفة العمليات المركزية: تعمل 24/7</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom-bar">
+                <div>
+                    جميع الحقوق محفوظة © 2026 شركة النصبان للحراسات الأمنية (3S)
+                </div>
+                <div style="display:flex; gap:16px;">
+                    <span>• التزام تام برؤية المملكة 2030</span>
+                    <span>• معتمد من الهيئة الوطنية للأمن السيبراني</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 7. نافذة نفاذ المنبثقة (Nafath Modal) -->
+    <div class="modal-backdrop" id="nafathModal">
+        <div class="modal-box">
+            <div style="width:60px; height:60px; border-radius:50%; background:#ecfdf5; color:#059669; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">
+                <i data-lucide="shield-check" style="width:32px; height:32px;"></i>
+            </div>
+            <h3 style="font-size:19px; font-weight:900; color:#047857;">تطبيق نفاذ الوطني</h3>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">
+                افتح تطبيق نفاذ على جوالك وقم باختيار الرقم التالي لإتمام توقيع عقد العمل:
+            </p>
+            <div class="nafath-code-display" id="nafath_random_number">71</div>
+            <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:18px;">تنتهي صلاحية الطلب خلال دقيقتين</p>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-primary-red" style="flex:1; justify-content:center; background:#059669;" onclick="confirmNafathVerification()">
+                    <i data-lucide="check"></i> تم الاختيار بنجاح
+                </button>
+                <button class="btn-secondary-clean" onclick="closeNafathModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. الكود البرمجي التفاعلي والربط مع الخادم الخلفي (JavaScript) -->
+    <script>
+        // إعداد الأيقونات
+        lucide.createIcons();
+
+        // التاريخ الحي بالهجري والميلادي
+        const now = new Date();
+        const optionsHijri = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' };
+        try {
+            document.getElementById('current_live_date').innerText = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', optionsHijri).format(now);
+        } catch (e) {}
+
+        // تكبير وتصغير الخطوط
+        let currentZoom = 100;
+        function adjustFontSize(dir) {
+            currentZoom += dir * 5;
+            if (currentZoom < 90) currentZoom = 90;
+            if (currentZoom > 120) currentZoom = 120;
+            document.body.style.zoom = currentZoom + '%';
+        }
+
+        // --- محرك الوضع المظلم (Dark Mode Engine) ---
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('annasban_theme', theme);
+            const iconTop = document.getElementById('theme-icon');
+            const iconNav = document.getElementById('theme-icon-nav');
+            const label = document.getElementById('theme-label');
+
+            const isDark = (theme === 'dark');
+            if (iconTop) iconTop.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            if (iconNav) iconNav.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            if (label) label.innerText = isDark ? 'الوضع النهاري' : 'الوضع المظلم';
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkMode() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+        }
+
+        // قراءة تفضيل المستخدم المحفوظ أو تفضيل الجهاز التلقائي
+        const savedTheme = localStorage.getItem('annasban_theme') || 
+            (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+
+        // --- لوحة التوقيع اليدوي التفاعلية (HTML5 Signature Pad) ---
+        let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
+
+        function initSignaturePad() {
+            sigCanvas = document.getElementById('sigCanvas');
+            if (!sigCanvas) return;
+            sigCtx = sigCanvas.getContext('2d');
+
+            // ضبط أبعاد الـ Canvas
+            const rect = sigCanvas.getBoundingClientRect();
+            sigCanvas.width = rect.width || 360;
+            sigCanvas.height = rect.height || 120;
+
+            sigCtx.lineWidth = 2.5;
+            sigCtx.lineCap = 'round';
+            sigCtx.strokeStyle = '#0f172a'; // حبر أسود كحلي أنيق
+
+            function getPos(e) {
+                const r = sigCanvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - r.left,
+                    y: clientY - r.top
+                };
+            }
+
+            function startDraw(e) {
+                isDrawing = true;
+                const pos = getPos(e);
+                sigCtx.beginPath();
+                sigCtx.moveTo(pos.x, pos.y);
+                const placeholder = document.getElementById('sigPlaceholder');
+                if (placeholder) placeholder.style.display = 'none';
+                e.preventDefault();
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                const pos = getPos(e);
+                sigCtx.lineTo(pos.x, pos.y);
+                sigCtx.stroke();
+                hasSigned = true;
+                e.preventDefault();
+            }
+
+            function stopDraw() {
+                isDrawing = false;
+            }
+
+            // أحداث الفأرة
+            sigCanvas.addEventListener('mousedown', startDraw);
+            sigCanvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', stopDraw);
+
+            // أحداث اللمس لشاشات الجوال والأجهزة اللوحية
+            sigCanvas.addEventListener('touchstart', startDraw, { passive: false });
+            sigCanvas.addEventListener('touchmove', draw, { passive: false });
+            sigCanvas.addEventListener('touchend', stopDraw);
+        }
+
+        function clearSignatureCanvas() {
+            if (!sigCanvas || !sigCtx) return;
+            sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            hasSigned = false;
+            const placeholder = document.getElementById('sigPlaceholder');
+            if (placeholder) placeholder.style.display = 'block';
+        }
+
+        window.addEventListener('DOMContentLoaded', initSignaturePad);
+        window.addEventListener('load', initSignaturePad);
+
+        // --- تبديل الواجهات (View Switching) ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item-btn').forEach(btn => btn.classList.remove('active'));
+
+            const targetView = document.getElementById('view-' + viewName);
+            const targetBtn = document.getElementById('btn-tab-' + viewName);
+
+            if (targetView) targetView.classList.add('active');
+            if (targetBtn) targetBtn.classList.add('active');
+
+            const hero = document.getElementById('hero-banner');
+            if (viewName === 'landing') {
+                hero.style.display = 'block';
+            } else {
+                hero.style.display = 'none';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        // --- خطوات منصة التوظيف (Stepper) ---
+        function goToStep(stepNum) {
+            for (let i = 1; i <= 6; i++) {
+                const content = document.getElementById('step-content-' + i);
+                const pill = document.getElementById('st-' + i);
+                if (content) content.style.display = (i === stepNum) ? 'block' : 'none';
+                if (pill) {
+                    pill.classList.remove('active');
+                    if (i < stepNum) pill.classList.add('completed');
+                    else pill.classList.remove('completed');
+                    if (i === stepNum) pill.classList.add('active');
+                }
+            }
+            if (stepNum === 6) {
+                populateContractData();
+            }
+            window.scrollTo({ top: 120, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        // --- تدقيق الهوية الوطنية (Luhn Algorithm) ---
+        function validateSaudiID(input) {
+            const val = input.value.trim();
+            const feedback = document.getElementById('id_feedback');
+            if (val.length === 0) {
+                feedback.innerHTML = '';
+                input.className = 'form-control';
+                return false;
+            }
+            if (!/^[12][0-9]{9}$/.test(val)) {
+                feedback.innerHTML = '<span class="validation-hint invalid">❌ رقم الهوية يجب أن يتكون من 10 أرقام ويبدأ بـ 1 أو 2</span>';
+                input.className = 'form-control is-invalid';
+                return false;
+            }
+            let sum = 0;
+            for (let i = 0; i < 10; i++) {
+                let digit = parseInt(val.charAt(i), 10);
+                if (i % 2 === 0) {
+                    let doubled = digit * 2;
+                    sum += (doubled > 9) ? (doubled - 9) : doubled;
+                } else {
+                    sum += digit;
+                }
+            }
+            if (sum % 10 === 0) {
+                feedback.innerHTML = '<span class="validation-hint valid">✓ رقم هوية وطنية معتمد ونظامي (Luhn Verified)</span>';
+                input.className = 'form-control is-valid';
+                return true;
+            } else {
+                feedback.innerHTML = '<span class="validation-hint invalid">❌ رقم الهوية غير صحيح (فشل اختبار التدقيق الرياضي لُهن)</span>';
+                input.className = 'form-control is-invalid';
+                return false;
+            }
+        }
+
+        // --- تدقيق رقم الجوال ---
+        function validateSaudiMobile(input) {
+            const val = input.value.trim();
+            const feedback = document.getElementById('mobile_feedback');
+            if (/^05[0-9]{8}$/.test(val)) {
+                feedback.innerHTML = '<span class="validation-hint valid">✓ رقم جوال سعودي معتمد</span>';
+                input.className = 'form-control is-valid';
+                return true;
+            } else {
+                feedback.innerHTML = '<span class="validation-hint invalid">❌ يجب أن يبدأ بـ 05 ويتكون من 10 أرقام</span>';
+                input.className = 'form-control is-invalid';
+                return false;
+            }
+        }
+
+        // --- تدقيق الآيبان السعودي (ISO 7064 Mod 97-10) ---
+        const SAUDI_BANKS = {
+            '80': 'مصرف الراجحي',
+            '10': 'البنك الأهلي السعودي (SNB)',
+            '55': 'مصرف الإنماء',
+            '45': 'البنك السعودي البريطاني (SAB)',
+            '20': 'بنك الرياض',
+            '05': 'البنك السعودي الفرنسي',
+            '15': 'بنك البلاد'
+        };
+
+        function validateSaudiIBAN(input) {
+            let val = input.value.toUpperCase().replace(/\s/g, '');
+            input.value = val;
+            const feedback = document.getElementById('iban_feedback');
+            const bankField = document.getElementById('app_bank_name');
+
+            if (!val.startsWith('SA') || val.length !== 24) {
+                feedback.innerHTML = '<span class="validation-hint invalid">❌ الآيبان يبدأ بـ SA ويتكون من 24 حرفاً ورقماً</span>';
+                input.className = 'form-control is-invalid';
+                return false;
+            }
+
+            const bankCode = val.substring(4, 6);
+            const bankName = SAUDI_BANKS[bankCode] || 'بنك سعودي معتمد';
+            bankField.value = bankName;
+
+            let rearranged = val.substring(4) + '2810' + val.substring(2, 4);
+            let remainder = 0;
+            for (let i = 0; i < rearranged.length; i++) {
+                remainder = (remainder * 10 + parseInt(rearranged.charAt(i), 10)) % 97;
+            }
+
+            if (remainder === 1) {
+                feedback.innerHTML = `<span class="validation-hint valid">✓ آيبان معتمد وصحيح تابع لـ (${bankName})</span>`;
+                input.className = 'form-control is-valid';
+                return true;
+            } else {
+                feedback.innerHTML = '<span class="validation-hint invalid">❌ رمز التحقق غير صالح</span>';
+                input.className = 'form-control is-invalid';
+                return false;
+            }
+        }
+
+        // --- سلم الرواتب ---
+        const SALARY_STRUCTURE = {
+            "مشرف أمن وسلامة": { basic: "4,500", housing: "1,125", transport: "500", total: "6,125 ر.س" },
+            "ضابط أمن": { basic: "3,800", housing: "950", transport: "500", total: "5,250 ر.س" },
+            "مشرف عمليات أمنية": { basic: "5,000", housing: "1,250", transport: "600", total: "6,850 ر.س" },
+            "مدير مشروع أمن": { basic: "8,500", housing: "2,125", transport: "1,000", total: "11,625 ر.س" }
+        };
+
+        function updateSalaryBreakdown(role) {
+            const data = SALARY_STRUCTURE[role] || SALARY_STRUCTURE["مشرف أمن وسلامة"];
+            document.getElementById('sal_basic').innerText = data.basic + ' ر.س';
+            document.getElementById('sal_housing').innerText = data.housing + ' ر.س';
+            document.getElementById('sal_transport').innerText = data.transport + ' ر.س';
+            document.getElementById('sal_total').innerText = data.total;
+        }
+
+        // --- الربط مع الواجهات البرمجية وتكامل نفاذ ---
+        const API_BASE = (window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000';
+        let currentAuthToken = sessionStorage.getItem('annasban_token') || null;
+        let currentNafathTransId = null;
+
+        async function openNafathModal() {
+            const nationalId = document.getElementById('app_id').value || '1089271645';
+            let randomCode = Math.floor(10 + Math.random() * 89).toString();
+            try {
+                const res = await fetch(API_BASE + '/api/nafath/initiate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nationalId })
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.data && json.data.verificationCode) {
+                        randomCode = json.data.verificationCode;
+                        currentNafathTransId = json.data.transId;
+                    }
+                }
+            } catch (err) {}
+            document.getElementById('nafath_random_number').innerText = randomCode;
+            document.getElementById('nafathModal').style.display = 'flex';
+        }
+
+        function closeNafathModal() {
+            document.getElementById('nafathModal').style.display = 'none';
+        }
+
+        async function confirmNafathVerification() {
+            const confirmedCode = document.getElementById('nafath_random_number').innerText;
+            if (currentNafathTransId) {
+                try {
+                    await fetch(API_BASE + '/api/nafath/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ transId: currentNafathTransId, confirmedCode })
+                    });
+                } catch (e) {}
+            }
+            closeNafathModal();
+            document.getElementById('nafath_status_unverified').style.display = 'none';
+            document.getElementById('nafath_status_verified').style.display = 'block';
+            document.getElementById('btn_to_step6').disabled = false;
+            document.getElementById('btn_to_step6').style.opacity = '1';
+        }
+
+        async function populateContractData() {
+            const name = document.getElementById('app_name').value || 'محمد عبدالله القحطاني';
+            const id = document.getElementById('app_id').value || '1089271645';
+            const mobile = document.getElementById('app_mobile').value || '0551234567';
+            const role = document.getElementById('app_job_role').value;
+            const project = document.getElementById('app_project').value;
+            const iban = document.getElementById('app_iban').value || 'SA0380000000608010167519';
+            const bank = document.getElementById('app_bank_name').value || 'مصرف الراجحي';
+            const salary = document.getElementById('sal_total').innerText;
+
+            document.getElementById('c_name').innerText = name;
+            document.getElementById('c_id').innerText = id;
+            document.getElementById('c_mobile').innerText = mobile;
+            document.getElementById('c_role').innerText = role;
+            document.getElementById('c_project').innerText = project;
+            document.getElementById('c_iban').innerText = iban;
+            document.getElementById('c_bank').innerText = bank;
+            document.getElementById('c_salary').innerText = salary;
+
+            // عرض التوقيع اليدوي الفعلي إن وُجد أو الاسم الصريح
+            const sigBox = document.getElementById('contract_sig_box');
+            if (sigBox) {
+                if (sigCanvas && hasSigned) {
+                    const sigDataUrl = sigCanvas.toDataURL('image/png');
+                    sigBox.innerHTML = '<img src="' + sigDataUrl + '" alt="توقيع الموظف المعتمد" style="max-height:52px; max-width:180px; object-fit:contain;">';
+                } else {
+                    sigBox.innerHTML = '<span style="font-size:17px; color:#0f172a; font-weight:700;">' + name + '</span>';
+                }
+            }
+
+            try {
+                const basicVal = parseFloat(salary.replace(/[^\d.]/g, '')) || 4500;
+                const signRes = await fetch(API_BASE + '/api/contracts/sign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fullName: name,
+                        nationalId: id,
+                        jobTitle: role,
+                        basicSalary: basicVal,
+                        nafathTransId: currentNafathTransId || 'NF-LOCAL-VERIFIED'
+                    })
+                });
+                if (signRes.ok) {
+                    const sJson = await signRes.json();
+                    if (sJson.data && sJson.data.signatureHash) {
+                        document.getElementById('c_seal_code').innerText = 'SHA256-' + sJson.data.signatureHash.substring(0, 20) + '...';
+                        document.getElementById('contract_ref').innerText = sJson.data.contractNumber;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // --- دخول الموظف ---
+        async function handleEmployeeLogin(e) {
+            e.preventDefault();
+            const ans = document.getElementById('captcha_answer').value;
+            if (parseInt(ans, 10) !== 7) {
+                alert('خطأ في التحقق الأمني البشري، الرجاء إدخال الناتج الصحيح (4 + 3 = 7)');
+                return;
+            }
+            const empId = document.getElementById('emp_login_num').value;
+            const nid = document.getElementById('emp_login_id').value;
+            const pass = document.getElementById('emp_login_pass').value;
+
+            try {
+                const res = await fetch(API_BASE + '/api/auth/employee-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nationalId: nid, employeeId: empId, password: pass })
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    const u = json.data.user;
+                    currentAuthToken = json.data.token;
+                    sessionStorage.setItem('annasban_token', currentAuthToken);
+
+                    document.getElementById('badge_name').innerText = u.fullName;
+                    document.getElementById('badge_emp_id').innerText = u.employeeId;
+                    document.getElementById('badge_nid').innerText = u.nationalId ? u.nationalId.slice(0, 4) + '****' + u.nationalId.slice(-2) : '1089****45';
+                    document.getElementById('badge_role').innerText = u.jobTitle;
+                    document.getElementById('badge_location').innerText = u.assignedLocation;
+                }
+            } catch (err) {}
+
+            document.getElementById('portal-login-box').style.display = 'none';
+            document.getElementById('portal-dashboard').style.display = 'block';
+            lucide.createIcons();
+        }
+
+        function logoutEmployee() {
+            sessionStorage.removeItem('annasban_token');
+            document.getElementById('portal-login-box').style.display = 'block';
+            document.getElementById('portal-dashboard').style.display = 'none';
+        }
+
+        // --- دخول الإدارة والامتثال ---
+        async function handleHrLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('hr_user').value;
+            const p = document.getElementById('hr_pass').value;
+
+            try {
+                const res = await fetch(API_BASE + '/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    currentAuthToken = json.data.token;
+                    sessionStorage.setItem('annasban_token', currentAuthToken);
+                    loadLiveAuditLogs();
+                    document.getElementById('hr-login-box').style.display = 'none';
+                    document.getElementById('hr-main-dashboard').style.display = 'block';
+                    lucide.createIcons();
+                    return;
+                }
+            } catch (err) {}
+
+            if (u === 'hr_manager' && p === 'Annasban@2026') {
+                document.getElementById('hr-login-box').style.display = 'none';
+                document.getElementById('hr-main-dashboard').style.display = 'block';
+                lucide.createIcons();
+            } else {
+                alert('اسم المستخدم أو كلمة المرور غير صحيحة.');
+            }
+        }
+
+        async function loadLiveAuditLogs() {
+            try {
+                const headers = {};
+                if (currentAuthToken) headers['Authorization'] = 'Bearer ' + currentAuthToken;
+                const res = await fetch(API_BASE + '/api/audit/logs', { headers });
+                if (res.ok) {
+                    const json = await res.json();
+                    const logs = json.data.logs;
+                    if (logs && logs.length > 0) {
+                        const tbody = document.getElementById('hr_audit_logs_table');
+                        tbody.innerHTML = logs.map(l => `
+                            <tr>
+                                <td>${l.created_at || new Date().toISOString().replace('T', ' ').substring(0, 19)}</td>
+                                <td><strong>${l.actor_name}</strong></td>
+                                <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">${l.actor_role}</span></td>
+                                <td><code>${l.action_type}</code></td>
+                                <td>${l.resource_accessed}</td>
+                                <td><code>${l.ip_address}</code></td>
+                                <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">${l.severity}</span></td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function exportAuditLogsToCsv() {
+            const table = document.getElementById('hr_audit_logs_table');
+            let csv = '\uFEFFالوقت والختم الزمني,المستخدم المسؤول,الصلاحية,نوع الإجراء,المورد المستهدف,عنوان الـ IP,المستوى\n';
+            for (let row of table.rows) {
+                let cols = [];
+                for (let cell of row.cells) {
+                    cols.push('"' + cell.innerText.replace(/"/g, '""') + '"');
+                }
+                csv += cols.join(',') + '\n';
+            }
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `تقرير_سجل_التدقيق_الأمني_PDPL_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+        }
+
+        function logoutHr() {
+            sessionStorage.removeItem('annasban_token');
+            document.getElementById('hr-login-box').style.display = 'block';
+            document.getElementById('hr-main-dashboard').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

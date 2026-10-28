@@ -1,0 +1,25 @@
+{
+  "name": "annasban-security-portal",
+  "version": "2.0.0",
+  "description": "البوابة الرقمية الموحدة لشركة النصبان للحراسات الأمنية - حل آمن ومتكامل ومتوافق مع نظام حماية البيانات الشخصية السعودي (PDPL) ونظام العمل",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test_system.js"
+  },
+  "keywords": [
+    "annasban",
+    "security-guards",
+    "saudi-pdpl",
+    "nafath",
+    "contracts",
+    "cybersecurity"
+  ],
+  "author": "Annasban Security & Cybersecurity Division",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
