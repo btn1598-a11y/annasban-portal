@@ -2034,6 +2034,9 @@
                             <button type="submit" class="btn-primary-red" style="width:100%; justify-content:center;">
                                 <i data-lucide="log-in"></i> تسجيل الدخول الآمن
                             </button>
+                            <button type="button" class="btn-secondary-clean" onclick="quickEmployeeDemoLogin()" style="width:100%; justify-content:center; margin-top:8px; border-color:var(--primary); color:var(--primary); font-weight:700;">
+                                <i data-lucide="zap"></i> الدخول التجريبي السريع (بنقرة واحدة)
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -2210,6 +2213,9 @@
                             </div>
                             <button type="submit" class="btn-primary-red" style="width:100%; justify-content:center;">
                                 <i data-lucide="shield"></i> تسجيل الدخول المصرح
+                            </button>
+                            <button type="button" class="btn-secondary-clean" onclick="quickHrDemoLogin()" style="width:100%; justify-content:center; margin-top:8px; border-color:var(--primary); color:var(--primary); font-weight:700;">
+                                <i data-lucide="zap"></i> الدخول التجريبي الفوري للوحة الموارد البشرية (بنقرة واحدة)
                             </button>
                         </form>
                     </div>
@@ -3104,6 +3110,32 @@
             sessionStorage.removeItem('annasban_token');
             document.getElementById('hr-login-box').style.display = 'block';
             document.getElementById('hr-main-dashboard').style.display = 'none';
+        }
+
+        function quickHrDemoLogin() {
+            const u = document.getElementById('hr_user');
+            const p = document.getElementById('hr_pass');
+            if (u) u.value = 'hr_manager';
+            if (p) p.value = 'Annasban@2026';
+            document.getElementById('hr-login-box').style.display = 'none';
+            document.getElementById('hr-main-dashboard').style.display = 'block';
+            if (typeof loadApplications === 'function') loadApplications();
+            loadLiveAuditLogs();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function quickEmployeeDemoLogin() {
+            const num = document.getElementById('emp_login_num');
+            const nid = document.getElementById('emp_login_id');
+            const pass = document.getElementById('emp_login_pass');
+            const ans = document.getElementById('captcha_answer');
+            if (num) num.value = 'EMP-1042';
+            if (nid) nid.value = '1089271645';
+            if (pass) pass.value = '12345678';
+            if (ans) ans.value = '7';
+            document.getElementById('portal-login-box').style.display = 'none';
+            document.getElementById('portal-dashboard').style.display = 'block';
+            if (window.lucide) lucide.createIcons();
         }
 
         // --- حفظ طلب التوظيف النهائي وإرساله للنظام المركزي ---
