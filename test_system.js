@@ -191,6 +191,20 @@ async function runTestSuite() {
         assertTest(auditRes.status === 200, 'استعراض سجلات التدقيق الأمني للمشرف');
         assertTest(auditRes.data.data.logs.length > 0, 'توثيق كافة عمليات تسجيل الدخول والوصول للبيانات الحساسة');
 
+        console.log('\n🔟 فحص منظومة المتقدمين وحزمة الوثائق الرسمية الـ 11:');
+        const appsRes = await makeInternalRequest('/api/applications', 'GET', null, hrToken);
+        assertTest(appsRes.status === 200, 'استرجاع قائمة المتقدمين وإحصائيات لوحة الموارد البشرية');
+        assertTest(appsRes.data.data.metrics.total >= 108, 'إجمالي عدد المتقدمين يطابق أو يفوق 108 مسجل');
+        assertTest(appsRes.data.data.metrics.completed >= 85, 'عدد الطلبات المكتملة يطابق النظام المرجعي (85)');
+
+        // فحص تحديث الحالة وتاريخ المباشرة
+        const firstApp = appsRes.data.data.applications[0];
+        const statusRes = await makeInternalRequest(`/api/applications/${firstApp.id}/status`, 'PATCH', { status: 'مقبول' }, hrToken);
+        assertTest(statusRes.status === 200, 'تحديث حالة المتقدم إلكترونياً بنجاح');
+
+        const dateRes = await makeInternalRequest(`/api/applications/${firstApp.id}/start-date`, 'PATCH', { startDate: '2026-03-01' }, hrToken);
+        assertTest(dateRes.status === 200, 'تحديد وحفظ تاريخ مباشرة العمل بنجاح');
+
         console.log('\n===============================================================');
         console.log(`📊 النتيجة النهائية للفحص الأوتوماتيكي:`);
         console.log(`   🟢 الفحوصات الناجحة: ${passedTests}`);

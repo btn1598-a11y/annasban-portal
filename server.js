@@ -672,6 +672,179 @@ const server = http.createServer(async (req, res) => {
             return sendSuccess(res, { employees });
         }
 
+        // ====================================================================
+        // مسارات إدارة طلبات التوظيف والمتقدمين (Hiring & Contract Engine)
+        // ====================================================================
+
+        // 14.1 استعراض طلبات التوظيف والمتقدمين مع مقاييس الحالات والبحث (Applications Directory & Metrics)
+        if (pathname === '/api/applications' && method === 'GET') {
+            const statusFilter = parsedUrl.searchParams.get('status');
+            const search = (parsedUrl.searchParams.get('search') || '').trim();
+
+            const metrics = {
+                total: db.prepare('SELECT COUNT(*) as c FROM applications').get().c,
+                pending: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'قيد الانتظار'").get().c,
+                reviewed: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'تمت المراجعة'").get().c,
+                accepted: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'مقبول'").get().c,
+                rejected: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'مرفوض'").get().c,
+                processing: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'إنهاء إجراءات'").get().c,
+                completed: db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'مكتمل'").get().c
+            };
+
+            let query = 'SELECT * FROM applications WHERE 1=1';
+            const params = [];
+
+            if (statusFilter && statusFilter !== 'الكل') {
+                query += ' AND status = ?';
+                params.push(statusFilter);
+            }
+
+            if (search) {
+                query += ' AND (full_name LIKE ? OR app_id LIKE ? OR national_id LIKE ? OR phone LIKE ?)';
+                const term = `%${search}%`;
+                params.push(term, term, term, term);
+            }
+
+            query += ' ORDER BY id DESC LIMIT 150';
+
+            const applications = db.prepare(query).all(...params);
+            return sendSuccess(res, { metrics, applications });
+        }
+
+        // 14.2 استعراض تفاصيل طلب توظيف فردي
+        if (pathname.startsWith('/api/applications/') && method === 'GET' && !pathname.endsWith('/status') && !pathname.endsWith('/start-date')) {
+            const appId = pathname.split('/')[3];
+            const app = db.prepare('SELECT * FROM applications WHERE id = ? OR app_id = ?').get(appId, appId);
+            if (!app) return sendSafeError(res, 404, 'طلب التوظيف غير موجود');
+            return sendSuccess(res, { application: app });
+        }
+
+        // 14.3 تحديث حالة طلب التوظيف (قيد الانتظار / مقبول / مرفوض / مكتمل ...)
+        if (pathname.startsWith('/api/applications/') && pathname.endsWith('/status') && (method === 'PATCH' || method === 'POST')) {
+            const appId = pathname.split('/')[3];
+            const body = await parseJsonBody(req);
+            const { status } = body;
+            const validStatuses = ['قيد الانتظار', 'تمت المراجعة', 'مقبول', 'مرفوض', 'إنهاء إجراءات', 'مكتمل'];
+            if (!validStatuses.includes(status)) {
+                return sendSafeError(res, 400, 'حالة الطلب غير صالحة');
+            }
+
+            const update = db.prepare('UPDATE applications SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? OR app_id = ?');
+            const result = update.run(status, appId, appId);
+            if (result.changes === 0) return sendSafeError(res, 404, 'طلب التوظيف غير موجود');
+
+            audit.log({
+                actorName: 'مسؤول الموارد البشرية',
+                actorRole: 'HR_OFFICER',
+                actionType: 'UPDATE_APPLICATION_STATUS',
+                resourceAccessed: `APP_${appId}`,
+                details: `تحديث حالة طلب التوظيف إلى: ${status}`,
+                ipAddress: clientIp,
+                userAgent,
+                severity: 'INFO'
+            });
+
+            return sendSuccess(res, { message: 'تم تحديث حالة الطلب بنجاح', status });
+        }
+
+        // 14.4 تحديث تاريخ المباشرة لطلب التوظيف
+        if (pathname.startsWith('/api/applications/') && pathname.endsWith('/start-date') && (method === 'PATCH' || method === 'POST')) {
+            const appId = pathname.split('/')[3];
+            const body = await parseJsonBody(req);
+            const { startDate } = body;
+            if (!startDate) return sendSafeError(res, 400, 'تاريخ المباشرة مطلوب');
+
+            const update = db.prepare('UPDATE applications SET start_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? OR app_id = ?');
+            const result = update.run(startDate, appId, appId);
+            if (result.changes === 0) return sendSafeError(res, 404, 'طلب التوظيف غير موجود');
+
+            audit.log({
+                actorName: 'مسؤول الموارد البشرية',
+                actorRole: 'HR_OFFICER',
+                actionType: 'SET_COMMENCEMENT_DATE',
+                resourceAccessed: `APP_${appId}`,
+                details: `تحديد تاريخ مباشرة العمل: ${startDate}`,
+                ipAddress: clientIp,
+                userAgent,
+                severity: 'INFO'
+            });
+
+            return sendSuccess(res, { message: 'تم حفظ وتحديث تاريخ المباشرة بنجاح', startDate });
+        }
+
+        // 14.5 تسجيل طلب توظيف جديد عبر واجهة المرشح
+        if (pathname === '/api/applications' && method === 'POST') {
+            const body = await parseJsonBody(req);
+            const {
+                fullName, nationalId, phone, email, city, district, street,
+                educationLevel, educationInst, degreeName, degreeDate,
+                jobTitle, projectName, workLocation, shift, startDate,
+                bankName, bankBranch, branchCode, iban, applicantSignature
+            } = body;
+
+            if (!fullName || !nationalId || !phone) {
+                return sendSafeError(res, 400, 'الاسم ورقم الهوية ورقم الجوال حقول إلزامية');
+            }
+
+            const newAppId = `APP-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+            const insertApp = db.prepare(`
+                INSERT INTO applications (
+                    app_id, full_name, nationality, national_id, id_issue_place, birth_date, gender, marital_status,
+                    phone, email, city, district, street, education_level, education_inst, degree_name, degree_date,
+                    job_title, project_name, work_location, shift, start_date, bank_name, bank_branch, branch_code,
+                    iban, status, applicant_signature, created_date, nafath_verified, nafath_trans_id
+                ) VALUES (
+                    ?, ?, 'سعودي', ?, 'الرياض', '1998-01-01', 'ذكر', 'أعزب',
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, 'مكتمل', ?, strftime('%Y/%m/%d', 'now'), 1, 'NF-PORTAL-VERIFIED'
+                )
+            `);
+
+            const result = insertApp.run(
+                newAppId,
+                sanitizeInput(fullName),
+                sanitizeInput(nationalId),
+                sanitizeInput(phone),
+                sanitizeInput(email || `${nationalId}@applicant.annasban.com`),
+                sanitizeInput(city || 'الرياض'),
+                sanitizeInput(district || 'العليا'),
+                sanitizeInput(street || 'شارع التحلية'),
+                sanitizeInput(educationLevel || 'ثانوي'),
+                sanitizeInput(educationInst || 'ثانوية عامة'),
+                sanitizeInput(degreeName || 'الثانوية'),
+                sanitizeInput(degreeDate || '2019-06-01'),
+                sanitizeInput(jobTitle || 'ضابط أمن'),
+                sanitizeInput(projectName || 'مشروع المربع الجديد'),
+                sanitizeInput(workLocation || 'الرياض المربع الجديد'),
+                sanitizeInput(shift || 'صباحي'),
+                sanitizeInput(startDate || '2026-02-20'),
+                sanitizeInput(bankName || 'مصرف الراجحي'),
+                sanitizeInput(bankBranch || 'فرع الرياض'),
+                sanitizeInput(branchCode || '001'),
+                sanitizeInput(iban || 'SA0380000000608010167519'),
+                applicantSignature || null
+            );
+
+            audit.log({
+                actorName: fullName,
+                actorRole: 'APPLICANT',
+                actionType: 'SUBMIT_JOB_APPLICATION',
+                resourceAccessed: newAppId,
+                details: `تقديم طلب توظيف إلكتروني جديد بنجاح برقم ${newAppId}`,
+                ipAddress: clientIp,
+                userAgent,
+                severity: 'INFO'
+            });
+
+            return sendSuccess(res, {
+                id: result.lastInsertRowid,
+                appId: newAppId,
+                message: 'تم تسجيل طلب التوظيف بنجاح في المنظومة وتوثيقه'
+            }, 201);
+        }
+
         // 14. إضافة موظف جديد مع التحقق الصارم
         if (pathname === '/api/employees' && method === 'POST') {
             const authUser = authenticateUser(req);

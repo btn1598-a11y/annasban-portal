@@ -111,6 +111,44 @@ CREATE TABLE IF NOT EXISTS active_sessions (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- جدول طلبات التوظيف والمتقدمين (بوابة إدارة الموارد البشرية وتوليد العقود)
+CREATE TABLE IF NOT EXISTS applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    app_id TEXT UNIQUE NOT NULL,
+    full_name TEXT NOT NULL,
+    nationality TEXT DEFAULT 'سعودي',
+    national_id TEXT UNIQUE NOT NULL,
+    id_issue_place TEXT DEFAULT 'حائل',
+    birth_date TEXT DEFAULT '1999-11-01',
+    gender TEXT DEFAULT 'ذكر',
+    marital_status TEXT DEFAULT 'أعزب',
+    phone TEXT NOT NULL,
+    email TEXT,
+    city TEXT DEFAULT 'القاعد',
+    district TEXT DEFAULT 'عثمر القديم',
+    street TEXT DEFAULT 'الر',
+    education_level TEXT DEFAULT 'ثانوي',
+    education_inst TEXT DEFAULT 'ثانوية قتيبه',
+    degree_name TEXT DEFAULT 'الثانوية',
+    degree_date TEXT DEFAULT '2019-09-01',
+    job_title TEXT NOT NULL DEFAULT 'ضابط أمن',
+    project_name TEXT NOT NULL DEFAULT 'مشروع المربع الجديد',
+    work_location TEXT DEFAULT 'الرياض المربع الجديد',
+    shift TEXT DEFAULT 'صباحي',
+    start_date TEXT DEFAULT '2026-02-20',
+    bank_name TEXT DEFAULT 'بنك الراجحي',
+    bank_branch TEXT DEFAULT 'فرع الرياض',
+    branch_code TEXT DEFAULT '001',
+    iban TEXT DEFAULT 'SA5580000679608010356897',
+    status TEXT DEFAULT 'قيد الانتظار' CHECK(status IN ('قيد الانتظار', 'تمت المراجعة', 'مقبول', 'مرفوض', 'إنهاء إجراءات', 'مكتمل')),
+    applicant_signature TEXT,
+    created_date TEXT DEFAULT '2026/9/1',
+    nafath_verified INTEGER DEFAULT 1,
+    nafath_trans_id TEXT DEFAULT 'NF-99281-2026',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- الفهارس لتحسين الأداء وسرعة الاستعلام الآمن
 CREATE INDEX IF NOT EXISTS idx_users_national_id ON users(national_id);
 CREATE INDEX IF NOT EXISTS idx_users_employee_id ON users(employee_id);
@@ -119,3 +157,5 @@ CREATE INDEX IF NOT EXISTS idx_contracts_contract_number ON contracts(contract_n
 CREATE INDEX IF NOT EXISTS idx_pay_slips_employee ON pay_slips(employee_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action_type);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+CREATE INDEX IF NOT EXISTS idx_applications_app_id ON applications(app_id);
