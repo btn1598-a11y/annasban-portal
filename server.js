@@ -756,11 +756,13 @@ const server = http.createServer(async (req, res) => {
         // خدمة شعار شركة النصبان والملفات الثابتة
         // ====================================================================
         if (pathname === '/logo.jpg' || pathname === '/logo.png') {
+            const localLogo = path.join(__dirname, 'logo.jpg');
             const uploadedLogo = '/Users/biso/.gemini/antigravity/brain/d6b027e6-c7bd-44b0-80d6-f28210e97c52/.user_uploaded/media_1793170841735_508c2499.jpg';
-            if (fs.existsSync(uploadedLogo)) {
+            const logoPath = fs.existsSync(localLogo) ? localLogo : (fs.existsSync(uploadedLogo) ? uploadedLogo : null);
+            if (logoPath) {
                 applySecurityHeaders(res);
                 res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400' });
-                fs.createReadStream(uploadedLogo).pipe(res);
+                fs.createReadStream(logoPath).pipe(res);
                 return;
             }
         }
