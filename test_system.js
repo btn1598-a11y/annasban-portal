@@ -191,11 +191,19 @@ async function runTestSuite() {
         assertTest(auditRes.status === 200, 'استعراض سجلات التدقيق الأمني للمشرف');
         assertTest(auditRes.data.data.logs.length > 0, 'توثيق كافة عمليات تسجيل الدخول والوصول للبيانات الحساسة');
 
-        console.log('\n🔟 فحص منظومة المتقدمين وحزمة الوثائق الرسمية الـ 11:');
+        console.log('\n🔟 فحص منظومة المتقدمين وحزمة الوثائق الرسمية الـ 11 والفرز والفلترة الشاملة:');
         const appsRes = await makeInternalRequest('/api/applications', 'GET', null, hrToken);
         assertTest(appsRes.status === 200, 'استرجاع قائمة المتقدمين وإحصائيات لوحة الموارد البشرية');
         assertTest(appsRes.data.data.metrics.total >= 108, 'إجمالي عدد المتقدمين يطابق أو يفوق 108 مسجل');
-        assertTest(appsRes.data.data.metrics.completed >= 80, 'عدد الطلبات المكتملة يطابق النظام المرجعي (~85)');
+        assertTest(
+            appsRes.data.data.metrics.pending > 0 &&
+            appsRes.data.data.metrics.reviewed > 0 &&
+            appsRes.data.data.metrics.accepted > 0 &&
+            appsRes.data.data.metrics.rejected > 0 &&
+            appsRes.data.data.metrics.processing > 0 &&
+            appsRes.data.data.metrics.completed >= 40,
+            `توزيع المتقدمين غني وشامل على جميع الحالات الـ 6 (انتظار: ${appsRes.data.data.metrics.pending}، مراجعة: ${appsRes.data.data.metrics.reviewed}، مقبول: ${appsRes.data.data.metrics.accepted}، مرفوض: ${appsRes.data.data.metrics.rejected}، إجراءات: ${appsRes.data.data.metrics.processing}، مكتمل: ${appsRes.data.data.metrics.completed})`
+        );
 
         // فحص تحديث الحالة وتاريخ المباشرة
         const firstApp = appsRes.data.data.applications[0];
@@ -207,12 +215,116 @@ async function runTestSuite() {
         const dateRes = await makeInternalRequest(`/api/applications/${firstApp.id}/start-date`, 'PATCH', { startDate: '2026-03-01' }, hrToken);
         assertTest(dateRes.status === 200, 'تحديد وحفظ تاريخ مباشرة العمل بنجاح');
 
-        // فحص الفلترة باسم المشروع المقدم له
-        assertTest(Array.isArray(appsRes.data.data.projects) && appsRes.data.data.projects.length > 0, 'استرجاع قائمة المشاريع المتاحة مع إحصائيات المتقدمين');
+        // فحص الفلترة باسم المشروع المقدم له والمسمى الوظيفي والوردية والفرز الأبجدي والزمني
+        assertTest(Array.isArray(appsRes.data.data.projects) && appsRes.data.data.projects.length >= 5, 'استرجاع كافة المشاريع الـ 5 المتاحة مع إحصائيات المتقدمين');
         const projFilterRes = await makeInternalRequest('/api/applications?project=' + encodeURIComponent('مشروع المربع الجديد'), 'GET', null, hrToken);
         assertTest(projFilterRes.status === 200, 'فلترة طلبات التوظيف باسم المشروع المقدم له (مشروع المربع الجديد)');
         const allMatchProject = projFilterRes.data.data.applications.every(a => a.project_name === 'مشروع المربع الجديد');
-        assertTest(allMatchProject && projFilterRes.data.data.applications.length > 0, 'كافة النتائج المعروضة تطابق المشروع المفلتر بدقة');
+        assertTest(allMatchProject && projFilterRes.data.data.applications.length >= 15, 'كافة النتائج المعروضة تطابق المشروع المفلتر بدقة وبعدد وافر');
+
+        const jobShiftFilterRes = await makeInternalRequest('/api/applications?job=' + encodeURIComponent('مشرف أمن') + '&shift=' + encodeURIComponent('صباحي'), 'GET', null, hrToken);
+        assertTest(
+            jobShiftFilterRes.status === 200 &&
+            jobShiftFilterRes.data.data.applications.length > 0 &&
+            jobShiftFilterRes.data.data.applications.every(a => a.job_title === 'مشرف أمن' && a.shift === 'صباحي'),
+            'الفلترة المركبة حسب المسمى الوظيفي (مشرف أمن) والوردية (صباحي) تعمل بدقة 100%'
+        );
+
+        const sortNameAscRes = await makeInternalRequest('/api/applications?sort=name_asc', 'GET', null, hrToken);
+        const sortedApps = sortNameAscRes.data.data.applications;
+        assertTest(
+            sortNameAscRes.status === 200 && sortedApps.length >= 108 &&
+            String(sortedApps[0].full_name).localeCompare(String(sortedApps[sortedApps.length - 1].full_name), 'ar') <= 0,
+            'الفرز الأبجدي التصاعدي (name_asc) يعمل بدقة على جميع السجلات'
+        );
+
+        const sortOldestRes = await makeInternalRequest('/api/applications?sort=oldest', 'GET', null, hrToken);
+        const oldestApps = sortOldestRes.data.data.applications;
+        assertTest(
+            sortOldestRes.status === 200 && oldestApps[0].id < oldestApps[oldestApps.length - 1].id,
+            'الفرز الزمني من الأقدم للأحدث (oldest) يعمل بدقة 100%'
+        );
+
+        // 11. فحص صلاحيات الوصول (RBAC) وعزل الصلاحيات بين الزائر والموظف والإدارة
+        console.log('\n1️⃣1️⃣ فحص صلاحيات الوصول الصارمة (RBAC) وحماية نقاط النهاية الإدارية:');
+        const unauthApps = await makeInternalRequest('/api/applications', 'GET');
+        assertTest(unauthApps.status === 403, 'منع الوصول غير المصرح به لسجلات المتقدمين (403 Forbidden)');
+        const empApps = await makeInternalRequest('/api/applications', 'GET', null, empToken);
+        assertTest(empApps.status === 403, 'منع صلاحية الموظف العادي من استعراض سجلات المتقدمين (403 Forbidden)');
+        const empStatusPatch = await makeInternalRequest(`/api/applications/${firstApp.id}/status`, 'PATCH', { status: 'مرفوض' }, empToken);
+        assertTest(empStatusPatch.status === 403, 'منع الموظف العادي من تعديل حالات طلبات التوظيف (403 Forbidden)');
+        const empAudit = await makeInternalRequest('/api/audit/logs', 'GET', null, empToken);
+        assertTest(empAudit.status === 403, 'منع الموظف العادي من الاطلاع على سجل التدقيق الأمني PDPL (403 Forbidden)');
+        const empContractsAll = await makeInternalRequest('/api/contracts', 'GET', null, empToken);
+        assertTest(empContractsAll.status === 403, 'منع الموظف العادي من استعراض جميع عقود الشركة (403 Forbidden)');
+
+        // 12. فحص حماية الملفات الثابتة ومنع تسريب الكود المصدري أو قاعدة البيانات
+        console.log('\n1️⃣2️⃣ فحص حماية الخادم ضد تسريب الملفات المصدرية وقاعدة البيانات:');
+        const leakServer = await makeInternalRequest('/server.js', 'GET');
+        assertTest(leakServer.status === 404, 'حظر الوصول لملف الخادم الخلفي /server.js (404)');
+        const leakDb = await makeInternalRequest('/database/db.js', 'GET');
+        assertTest(leakDb.status === 404, 'حظر الوصول لملف قاعدة البيانات /database/db.js (404)');
+        const leakAuth = await makeInternalRequest('/lib/auth.js', 'GET');
+        assertTest(leakAuth.status === 404, 'حظر الوصول لمكتبة التشفير /lib/auth.js (404)');
+        const leakPkg = await makeInternalRequest('/package.json', 'GET');
+        assertTest(leakPkg.status === 404, 'حظر الوصول لملف /package.json (404)');
+
+        // 13. فحص تكامل البيانات (Luhn NID + Mod-97 IBAN) لجميع الحسابات والـ 108 متقدمين
+        console.log('\n1️⃣3️⃣ فحص تكامل وصحة البيانات القياسية لجميع الموظفين والـ 108 متقدمين:');
+        const { validateSaudiNationalID, validateSaudiIBAN } = require('./lib/validation');
+        const allAppsValidNid = appsRes.data.data.applications.every(a => validateSaudiNationalID(a.national_id).isValid);
+        const allAppsValidIban = appsRes.data.data.applications.every(a => validateSaudiIBAN(a.iban).isValid);
+        assertTest(allAppsValidNid, 'جميع أرقام الهوية الوطنية للمتقدمين (108 متقدم) صحيحة ومطابقة لخوارزمية Luhn بنسبة 100%');
+        assertTest(allAppsValidIban, 'جميع أرقام الآيبان البنكية للمتقدمين (108 متقدم) صحيحة ومطابقة لمعيار ISO 7064 Mod 97-10 بنسبة 100%');
+
+        // فحص دخول جميع الموظفين (EMP-1042, EMP-1043, EMP-1044) واسترجاع عقودهم ومسيراتهم
+        const emp1043Login = await makeInternalRequest('/api/auth/employee-login', 'POST', {
+            nationalId: '1054398217',
+            employeeId: 'EMP-1043',
+            password: '12345678',
+            captchaAnswer: 7
+        });
+        assertTest(emp1043Login.status === 200, 'تسجيل دخول الموظف الثاني (EMP-1043) بنجاح مع التحقق من CAPTCHA');
+        const emp1043Contract = await makeInternalRequest('/api/contracts/my', 'GET', null, emp1043Login.data.data.token);
+        assertTest(emp1043Contract.status === 200 && emp1043Contract.data.data.contract.basic_salary >= 4000, 'عقد الموظف EMP-1043 متوافق مع الحد الأدنى للتوطين (4,000 ر.س أساسي)');
+
+        const emp1044Login = await makeInternalRequest('/api/auth/employee-login', 'POST', {
+            nationalId: '1098234121',
+            employeeId: 'EMP-1044',
+            password: '12345678',
+            captchaAnswer: 7
+        });
+        assertTest(emp1044Login.status === 200, 'تسجيل دخول الموظف الثالث (EMP-1044) بنجاح');
+        const emp1044Contract = await makeInternalRequest('/api/contracts/my', 'GET', null, emp1044Login.data.data.token);
+        assertTest(emp1044Contract.status === 200, 'استرجاع العقد الموثق للموظف الثالث (EMP-1044) بنجاح');
+
+        // فحص تقديم طلب توظيف متكرر بنفس الهوية (تحديث سلس بدلاً من خطأ 500)
+        const dupAppRes = await makeInternalRequest('/api/applications', 'POST', {
+            fullName: 'محمد عبدالله القحطاني',
+            nationalId: '1089271645',
+            phone: '0551234567',
+            iban: 'SA0380000000608010167519',
+            jobTitle: 'ضابط أمن',
+            projectName: 'مشروع المربع الجديد'
+        });
+        assertTest(dupAppRes.status === 201 && Boolean(dupAppRes.data.data.app_id), 'معالجة تقديم طلب التوظيف وتحديث السجل المكرر بنجاح دون خطأ 500');
+
+        // 14. فحص محرك الطباعة (4 أوضاع طباعة) وحزمة الوثائق الـ 11
+        console.log('\n1️⃣4️⃣ فحص أوامر الطباعة (@media print) ومحرك الوثائق الرسمية الـ 11:');
+        const fs = require('node:fs');
+        const indexHtml = fs.readFileSync('./index.html', 'utf8');
+        const hrEngineJs = fs.readFileSync('./hr_engine.js', 'utf8');
+        assertTest(
+            indexHtml.includes('printDocumentSection(\'contract\')') &&
+            indexHtml.includes('printDocumentSection(\'badge\')') &&
+            indexHtml.includes('printDocumentSection(\'docs\')') &&
+            indexHtml.includes('printDocumentSection(\'attachment\')'),
+            'تفعيل كافة أوامر الطباعة الأربعة (العقد الموحد، البطاقة الأمنية، الـ 11 وثيقة، والمرفقات الفردية)'
+        );
+        assertTest(
+            !hrEngineJs.includes('info@3s-secrity.net') && hrEngineJs.includes('info@3s-security.net'),
+            'تصحيح البريد الرسمي في تذييل كافة الوثائق المطبوعة (info@3s-security.net)'
+        );
 
         console.log('\n===============================================================');
         console.log(`📊 النتيجة النهائية للفحص الأوتوماتيكي:`);
@@ -224,12 +336,12 @@ async function runTestSuite() {
         console.log('===============================================================\n');
 
         // إنهاء العملية بنجاح
-        server.close();
+        if (server.listening) server.close();
         process.exit(failedTests === 0 ? 0 : 1);
 
     } catch (err) {
         console.error('❌ خطأ غير متوقع أثناء تنفيذ الاختبارات:', err);
-        server.close();
+        if (server.listening) server.close();
         process.exit(1);
     }
 }

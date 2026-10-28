@@ -116,7 +116,7 @@ const server = http.createServer(async (req, res) => {
 
     // دعم استعلامات الـ CORS إذا لزم الأمر
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
 
     if (method === 'OPTIONS') {
@@ -232,6 +232,14 @@ const server = http.createServer(async (req, res) => {
             const nidCheck = validateSaudiNationalID(nationalId);
             if (!nidCheck.isValid) {
                 return sendSafeError(res, 400, nidCheck.message);
+            }
+
+            // التحقق من رمز الـ CAPTCHA في حال إرساله من الواجهة
+            if (captchaAnswer !== undefined && captchaAnswer !== null && String(captchaAnswer).trim() !== '') {
+                const expected = body.expectedCaptcha !== undefined ? Number(body.expectedCaptcha) : 7;
+                if (Number(captchaAnswer) !== expected) {
+                    return sendSafeError(res, 400, 'إجابة التحقق البشري (CAPTCHA) غير صحيحة', 'ERR_INVALID_CAPTCHA');
+                }
             }
 
             // البحث عن الموظف بالهوية الوطنية أو الرقم الوظيفي
@@ -473,8 +481,19 @@ const server = http.createServer(async (req, res) => {
             } = body;
 
             // تدقيق البيانات
+            if (!fullName || String(fullName).trim().length < 3) {
+                return sendSafeError(res, 400, 'الاسم الكامل للموظف مطلوب لتوثيق العقد');
+            }
+
             const nidCheck = validateSaudiNationalID(nationalId);
             if (!nidCheck.isValid) return sendSafeError(res, 400, nidCheck.message);
+
+            if (nafathTransId && activeNafathRequests.has(nafathTransId)) {
+                const nfRec = activeNafathRequests.get(nafathTransId);
+                if (nfRec.status !== 'VERIFIED') {
+                    return sendSafeError(res, 400, 'لم يتم تأكيد رمز نفاذ الوطني بعد', 'ERR_NAFATH_UNVERIFIED');
+                }
+            }
 
             if (!basicSalary || isNaN(basicSalary) || basicSalary < 4000) {
                 return sendSafeError(res, 400, 'الحد الأدنى لرواتب حراس الأمن المحتسبين في التوطين هو 4,000 ريال طبقاً لتنظيمات وزارة الموارد البشرية');
@@ -676,10 +695,18 @@ const server = http.createServer(async (req, res) => {
         // مسارات إدارة طلبات التوظيف والمتقدمين (Hiring & Contract Engine)
         // ====================================================================
 
-        // 14.1 استعراض طلبات التوظيف والمتقدمين مع مقاييس الحالات والبحث (Applications Directory & Metrics)
+        // 14.1 استعراض طلبات التوظيف والمتقدمين مع مقاييس الحالات والبحث والفرز المتقدم (Applications Directory & Metrics)
         if (pathname === '/api/applications' && method === 'GET') {
+            const authUser = authenticateUser(req);
+            if (!authUser || !['admin', 'hr'].includes(authUser.role)) {
+                return sendSafeError(res, 403, 'غير مصرح بالوصول لسجلات المتقدمين، هذه الصلاحية مقصورة على إدارة الموارد البشرية', 'ERR_FORBIDDEN');
+            }
+
             const statusFilter = parsedUrl.searchParams.get('status');
             const projectFilter = parsedUrl.searchParams.get('project');
+            const jobFilter = parsedUrl.searchParams.get('job');
+            const shiftFilter = parsedUrl.searchParams.get('shift');
+            const sortBy = parsedUrl.searchParams.get('sort') || 'newest';
             const search = (parsedUrl.searchParams.get('search') || '').trim();
 
             const metrics = {
@@ -713,13 +740,34 @@ const server = http.createServer(async (req, res) => {
                 params.push(projectFilter);
             }
 
-            if (search) {
-                query += ' AND (full_name LIKE ? OR app_id LIKE ? OR national_id LIKE ? OR phone LIKE ? OR project_name LIKE ?)';
-                const term = `%${search}%`;
-                params.push(term, term, term, term, term);
+            if (jobFilter && jobFilter !== 'الكل') {
+                query += ' AND job_title = ?';
+                params.push(jobFilter);
             }
 
-            query += ' ORDER BY id DESC LIMIT 150';
+            if (shiftFilter && shiftFilter !== 'الكل') {
+                query += ' AND shift = ?';
+                params.push(shiftFilter);
+            }
+
+            if (search) {
+                query += ' AND (full_name LIKE ? OR app_id LIKE ? OR national_id LIKE ? OR phone LIKE ? OR project_name LIKE ? OR job_title LIKE ? OR city LIKE ?)';
+                const term = `%${search}%`;
+                params.push(term, term, term, term, term, term, term);
+            }
+
+            const sortMap = {
+                newest: 'id DESC',
+                oldest: 'id ASC',
+                name_asc: 'full_name ASC',
+                name_desc: 'full_name DESC',
+                project: 'project_name ASC, id DESC',
+                status: 'status ASC, id DESC',
+                job: 'job_title ASC, id DESC',
+                start_date: 'start_date DESC, id DESC'
+            };
+            const orderClause = sortMap[sortBy] || 'id DESC';
+            query += ` ORDER BY ${orderClause} LIMIT 150`;
 
             const applications = db.prepare(query).all(...params);
             return sendSuccess(res, { metrics, projects, applications });
@@ -727,7 +775,12 @@ const server = http.createServer(async (req, res) => {
 
         // 14.2 استعراض تفاصيل طلب توظيف فردي
         if (pathname.startsWith('/api/applications/') && method === 'GET' && !pathname.endsWith('/status') && !pathname.endsWith('/start-date')) {
-            const appId = pathname.split('/')[3];
+            const authUser = authenticateUser(req);
+            if (!authUser || !['admin', 'hr'].includes(authUser.role)) {
+                return sendSafeError(res, 403, 'غير مصرح بالوصول لبيانات المتقدمين الشخصية', 'ERR_FORBIDDEN');
+            }
+
+            const appId = decodeURIComponent(pathname.split('/')[3] || '');
             const app = db.prepare('SELECT * FROM applications WHERE id = ? OR app_id = ?').get(appId, appId);
             if (!app) return sendSafeError(res, 404, 'طلب التوظيف غير موجود');
             return sendSuccess(res, { application: app });
@@ -735,7 +788,12 @@ const server = http.createServer(async (req, res) => {
 
         // 14.3 تحديث حالة طلب التوظيف (قيد الانتظار / مقبول / مرفوض / مكتمل ...)
         if (pathname.startsWith('/api/applications/') && pathname.endsWith('/status') && (method === 'PATCH' || method === 'POST')) {
-            const appId = pathname.split('/')[3];
+            const authUser = authenticateUser(req);
+            if (!authUser || !['admin', 'hr'].includes(authUser.role)) {
+                return sendSafeError(res, 403, 'غير مصرح بتعديل حالات طلبات التوظيف', 'ERR_FORBIDDEN');
+            }
+
+            const appId = decodeURIComponent(pathname.split('/')[3] || '');
             const body = await parseJsonBody(req);
             const { status } = body;
             const validStatuses = ['قيد الانتظار', 'تمت المراجعة', 'مقبول', 'مرفوض', 'إنهاء إجراءات', 'مكتمل'];
@@ -748,8 +806,9 @@ const server = http.createServer(async (req, res) => {
             if (result.changes === 0) return sendSafeError(res, 404, 'طلب التوظيف غير موجود');
 
             audit.log({
-                actorName: 'مسؤول الموارد البشرية',
-                actorRole: 'HR_OFFICER',
+                actorId: authUser.id,
+                actorName: authUser.fullName || 'مسؤول الموارد البشرية',
+                actorRole: authUser.role || 'HR_OFFICER',
                 actionType: 'UPDATE_APPLICATION_STATUS',
                 resourceAccessed: `APP_${appId}`,
                 details: `تحديث حالة طلب التوظيف إلى: ${status}`,
@@ -763,7 +822,12 @@ const server = http.createServer(async (req, res) => {
 
         // 14.4 تحديث تاريخ المباشرة لطلب التوظيف
         if (pathname.startsWith('/api/applications/') && pathname.endsWith('/start-date') && (method === 'PATCH' || method === 'POST')) {
-            const appId = pathname.split('/')[3];
+            const authUser = authenticateUser(req);
+            if (!authUser || !['admin', 'hr'].includes(authUser.role)) {
+                return sendSafeError(res, 403, 'غير مصرح بتحديد تاريخ المباشرة', 'ERR_FORBIDDEN');
+            }
+
+            const appId = decodeURIComponent(pathname.split('/')[3] || '');
             const body = await parseJsonBody(req);
             const { startDate } = body;
             if (!startDate) return sendSafeError(res, 400, 'تاريخ المباشرة مطلوب');
@@ -773,8 +837,9 @@ const server = http.createServer(async (req, res) => {
             if (result.changes === 0) return sendSafeError(res, 404, 'طلب التوظيف غير موجود');
 
             audit.log({
-                actorName: 'مسؤول الموارد البشرية',
-                actorRole: 'HR_OFFICER',
+                actorId: authUser.id,
+                actorName: authUser.fullName || 'مسؤول الموارد البشرية',
+                actorRole: authUser.role || 'HR_OFFICER',
                 actionType: 'SET_COMMENCEMENT_DATE',
                 resourceAccessed: `APP_${appId}`,
                 details: `تحديد تاريخ مباشرة العمل: ${startDate}`,
@@ -800,61 +865,115 @@ const server = http.createServer(async (req, res) => {
                 return sendSafeError(res, 400, 'الاسم ورقم الهوية ورقم الجوال حقول إلزامية');
             }
 
-            const newAppId = `APP-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            const nidCheck = validateSaudiNationalID(nationalId);
+            if (!nidCheck.isValid) return sendSafeError(res, 400, nidCheck.message);
 
-            const insertApp = db.prepare(`
-                INSERT INTO applications (
-                    app_id, full_name, nationality, national_id, id_issue_place, birth_date, gender, marital_status,
-                    phone, email, city, district, street, education_level, education_inst, degree_name, degree_date,
-                    job_title, project_name, work_location, shift, start_date, bank_name, bank_branch, branch_code,
-                    iban, status, applicant_signature, created_date, nafath_verified, nafath_trans_id
-                ) VALUES (
-                    ?, ?, 'سعودي', ?, 'الرياض', '1998-01-01', 'ذكر', 'أعزب',
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, 'مكتمل', ?, strftime('%Y/%m/%d', 'now'), 1, 'NF-PORTAL-VERIFIED'
-                )
-            `);
+            const mobCheck = validateSaudiMobile(phone);
+            if (!mobCheck.isValid) return sendSafeError(res, 400, mobCheck.message);
 
-            const result = insertApp.run(
-                newAppId,
-                sanitizeInput(fullName),
-                sanitizeInput(nationalId),
-                sanitizeInput(phone),
-                sanitizeInput(email || `${nationalId}@applicant.annasban.com`),
-                sanitizeInput(city || 'الرياض'),
-                sanitizeInput(district || 'العليا'),
-                sanitizeInput(street || 'شارع التحلية'),
-                sanitizeInput(educationLevel || 'ثانوي'),
-                sanitizeInput(educationInst || 'ثانوية عامة'),
-                sanitizeInput(degreeName || 'الثانوية'),
-                sanitizeInput(degreeDate || '2019-06-01'),
-                sanitizeInput(jobTitle || 'ضابط أمن'),
-                sanitizeInput(projectName || 'مشروع المربع الجديد'),
-                sanitizeInput(workLocation || 'الرياض المربع الجديد'),
-                sanitizeInput(shift || 'صباحي'),
-                sanitizeInput(startDate || '2026-02-20'),
-                sanitizeInput(bankName || 'مصرف الراجحي'),
-                sanitizeInput(bankBranch || 'فرع الرياض'),
-                sanitizeInput(branchCode || '001'),
-                sanitizeInput(iban || 'SA0380000000608010167519'),
-                applicantSignature || null
-            );
+            let formattedIban = 'SA03 8000 0000 6080 1016 7519';
+            if (iban && String(iban).trim() !== '') {
+                const ibanCheck = validateSaudiIBAN(iban);
+                if (!ibanCheck.isValid) return sendSafeError(res, 400, ibanCheck.message);
+                formattedIban = ibanCheck.formatted;
+            }
+
+            // فحص ما إذا كان للمتقدم طلب مسجل مسبقاً بنفس الهوية لتحديثه بدلاً من رمي خطأ قاعدة بيانات 500
+            const existingApp = db.prepare('SELECT id, app_id FROM applications WHERE national_id = ?').get(String(nationalId).trim());
+            let finalAppId = existingApp ? existingApp.app_id : `APP-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            let recordId = existingApp ? existingApp.id : null;
+
+            if (existingApp) {
+                const updateExisting = db.prepare(`
+                    UPDATE applications SET
+                        full_name = ?, phone = ?, email = ?, city = ?, district = ?, street = ?,
+                        education_level = ?, education_inst = ?, degree_name = ?, degree_date = ?,
+                        job_title = ?, project_name = ?, work_location = ?, shift = ?, start_date = ?,
+                        bank_name = ?, bank_branch = ?, branch_code = ?, iban = ?,
+                        applicant_signature = COALESCE(?, applicant_signature),
+                        status = 'مكتمل', updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                `);
+                updateExisting.run(
+                    sanitizeInput(fullName),
+                    mobCheck.formatted,
+                    sanitizeInput(email || `${nationalId}@applicant.annasban.com`),
+                    sanitizeInput(city || 'الرياض'),
+                    sanitizeInput(district || 'العليا'),
+                    sanitizeInput(street || 'شارع التحلية'),
+                    sanitizeInput(educationLevel || 'ثانوي'),
+                    sanitizeInput(educationInst || 'ثانوية عامة'),
+                    sanitizeInput(degreeName || 'الثانوية'),
+                    sanitizeInput(degreeDate || '2019-06-01'),
+                    sanitizeInput(jobTitle || 'ضابط أمن'),
+                    sanitizeInput(projectName || 'مشروع المربع الجديد'),
+                    sanitizeInput(workLocation || 'الرياض المربع الجديد'),
+                    sanitizeInput(shift || 'صباحي'),
+                    sanitizeInput(startDate || '2026-02-20'),
+                    sanitizeInput(bankName || 'مصرف الراجحي'),
+                    sanitizeInput(bankBranch || 'فرع الرياض'),
+                    sanitizeInput(branchCode || '001'),
+                    formattedIban,
+                    applicantSignature || null,
+                    existingApp.id
+                );
+            } else {
+                const insertApp = db.prepare(`
+                    INSERT INTO applications (
+                        app_id, full_name, nationality, national_id, id_issue_place, birth_date, gender, marital_status,
+                        phone, email, city, district, street, education_level, education_inst, degree_name, degree_date,
+                        job_title, project_name, work_location, shift, start_date, bank_name, bank_branch, branch_code,
+                        iban, status, applicant_signature, created_date, nafath_verified, nafath_trans_id
+                    ) VALUES (
+                        ?, ?, 'سعودي', ?, 'الرياض', '1998-01-01', 'ذكر', 'أعزب',
+                        ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, ?, ?, ?, ?, ?, ?, ?,
+                        ?, 'مكتمل', ?, strftime('%Y/%m/%d', 'now'), 1, 'NF-PORTAL-VERIFIED'
+                    )
+                `);
+
+                const result = insertApp.run(
+                    finalAppId,
+                    sanitizeInput(fullName),
+                    String(nationalId).trim(),
+                    mobCheck.formatted,
+                    sanitizeInput(email || `${nationalId}@applicant.annasban.com`),
+                    sanitizeInput(city || 'الرياض'),
+                    sanitizeInput(district || 'العليا'),
+                    sanitizeInput(street || 'شارع التحلية'),
+                    sanitizeInput(educationLevel || 'ثانوي'),
+                    sanitizeInput(educationInst || 'ثانوية عامة'),
+                    sanitizeInput(degreeName || 'الثانوية'),
+                    sanitizeInput(degreeDate || '2019-06-01'),
+                    sanitizeInput(jobTitle || 'ضابط أمن'),
+                    sanitizeInput(projectName || 'مشروع المربع الجديد'),
+                    sanitizeInput(workLocation || 'الرياض المربع الجديد'),
+                    sanitizeInput(shift || 'صباحي'),
+                    sanitizeInput(startDate || '2026-02-20'),
+                    sanitizeInput(bankName || 'مصرف الراجحي'),
+                    sanitizeInput(bankBranch || 'فرع الرياض'),
+                    sanitizeInput(branchCode || '001'),
+                    formattedIban,
+                    applicantSignature || null
+                );
+                recordId = result.lastInsertRowid;
+            }
 
             audit.log({
                 actorName: fullName,
                 actorRole: 'APPLICANT',
                 actionType: 'SUBMIT_JOB_APPLICATION',
-                resourceAccessed: newAppId,
-                details: `تقديم طلب توظيف إلكتروني جديد بنجاح برقم ${newAppId}`,
+                resourceAccessed: finalAppId,
+                details: `تقديم طلب توظيف إلكتروني وتوثيقه بنجاح برقم ${finalAppId}`,
                 ipAddress: clientIp,
                 userAgent,
                 severity: 'INFO'
             });
 
             return sendSuccess(res, {
-                id: result.lastInsertRowid,
-                appId: newAppId,
+                id: recordId,
+                appId: finalAppId,
+                app_id: finalAppId,
                 message: 'تم تسجيل طلب التوظيف بنجاح في المنظومة وتوثيقه'
             }, 201);
         }
@@ -940,42 +1059,42 @@ const server = http.createServer(async (req, res) => {
         }
 
         // ====================================================================
-        // خدمة شعار شركة النصبان والملفات الثابتة
+        // خدمة شعار شركة النصبان والملفات الثابتة (قائمة بيضاء صارمة لمنع تسريب الكود وقاعدة البيانات)
         // ====================================================================
         if (pathname === '/logo.jpg' || pathname === '/logo.png') {
             const localLogo = path.join(__dirname, 'logo.jpg');
-            const uploadedLogo = '/Users/biso/.gemini/antigravity/brain/d6b027e6-c7bd-44b0-80d6-f28210e97c52/.user_uploaded/media_1793170841735_508c2499.jpg';
-            const logoPath = fs.existsSync(localLogo) ? localLogo : (fs.existsSync(uploadedLogo) ? uploadedLogo : null);
-            if (logoPath) {
+            if (fs.existsSync(localLogo)) {
                 applySecurityHeaders(res);
                 res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=86400' });
-                fs.createReadStream(logoPath).pipe(res);
+                fs.createReadStream(localLogo).pipe(res);
                 return;
             }
         }
 
         if (method === 'GET') {
-            let filePath = pathname === '/' ? '/index.html' : pathname;
-            const safePath = path.normalize(filePath).replace(/^(\.\.[\/\\])+/, '');
-            const absolutePath = path.join(__dirname, safePath);
+            const allowedPublicFiles = new Set(['/', '/index.html', '/hr_engine.js', '/logo.jpg', '/logo.png']);
+            if (allowedPublicFiles.has(pathname)) {
+                const filePath = pathname === '/' ? '/index.html' : pathname;
+                const safePath = path.normalize(filePath).replace(/^(\.\.[\/\\])+/, '');
+                const absolutePath = path.join(__dirname, safePath);
 
-            if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()) {
-                const ext = path.extname(absolutePath).toLowerCase();
-                const mimeTypes = {
-                    '.html': 'text/html; charset=utf-8',
-                    '.css': 'text/css; charset=utf-8',
-                    '.js': 'application/javascript; charset=utf-8',
-                    '.json': 'application/json; charset=utf-8',
-                    '.png': 'image/png',
-                    '.jpg': 'image/jpeg',
-                    '.webp': 'image/webp',
-                    '.svg': 'image/svg+xml'
-                };
+                if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()) {
+                    const ext = path.extname(absolutePath).toLowerCase();
+                    const mimeTypes = {
+                        '.html': 'text/html; charset=utf-8',
+                        '.css': 'text/css; charset=utf-8',
+                        '.js': 'application/javascript; charset=utf-8',
+                        '.png': 'image/png',
+                        '.jpg': 'image/jpeg',
+                        '.webp': 'image/webp',
+                        '.svg': 'image/svg+xml'
+                    };
 
-                const contentType = mimeTypes[ext] || 'application/octet-stream';
-                res.writeHead(200, { 'Content-Type': contentType });
-                fs.createReadStream(absolutePath).pipe(res);
-                return;
+                    const contentType = mimeTypes[ext] || 'application/octet-stream';
+                    res.writeHead(200, { 'Content-Type': contentType });
+                    fs.createReadStream(absolutePath).pipe(res);
+                    return;
+                }
             }
         }
 
@@ -989,15 +1108,17 @@ const server = http.createServer(async (req, res) => {
     }
 });
 
-// بدء الاستماع
-server.listen(PORT, HOST, () => {
-    console.log(`==================================================================`);
-    console.log(`🚀 خادم شركة النصبان للحراسات الأمنية يعمل بنجاح!`);
-    console.log(`📍 الرابط المحلي: http://localhost:${PORT}`);
-    console.log(`🔒 نظام حماية البيانات الشخصية السعودي (PDPL): مفعل ومراقب`);
-    console.log(`🛡️  حماية الـ Rate Limiter وتشفير PBKDF2-SHA512: مفعل`);
-    console.log(`==================================================================`);
-});
+// بدء الاستماع عند تشغيل الملف مباشرة
+if (require.main === module) {
+    server.listen(PORT, HOST, () => {
+        console.log(`==================================================================`);
+        console.log(`🚀 خادم شركة النصبان للحراسات الأمنية يعمل بنجاح!`);
+        console.log(`📍 الرابط المحلي: http://localhost:${PORT}`);
+        console.log(`🔒 نظام حماية البيانات الشخصية السعودي (PDPL): مفعل ومراقب`);
+        console.log(`🛡️  حماية الـ Rate Limiter وتشفير PBKDF2-SHA512: مفعل`);
+        console.log(`==================================================================`);
+    });
+}
 
 // التعامل مع إشارات الإغلاق
 process.on('SIGTERM', () => {

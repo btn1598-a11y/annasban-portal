@@ -1526,29 +1526,102 @@
         }
 
         @media print {
-            .top-gov-bar, .main-header, .main-footer, .stepper-nav, .hero-section { display: none !important; }
-            body { background: #fff !important; }
-            .gov-card { box-shadow: none !important; border: 1px solid #000 !important; }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                zoom: 100% !important;
+            }
+            .top-gov-bar, .main-header, .main-footer, .stepper-nav, .hero-section,
+            .official-doc-actions, .no-print, button, .access-btn {
+                display: none !important;
+            }
+            .gov-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
 
-            body * { visibility: hidden !important; }
-            #official-documents-modal, #official-documents-modal * { visibility: visible !important; }
-            #official-documents-modal {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
+            /* الوضع 1: طباعة حزمة الوثائق الرسمية الـ 11 */
+            body[data-print-mode="docs"] .main-content-area,
+            body[data-print-mode="docs"] #attachmentModal,
+            body[data-print-mode="docs"] #nafathModal {
+                display: none !important;
+            }
+            body[data-print-mode="docs"] #official-documents-modal {
+                position: static !important;
+                display: block !important;
                 width: 100% !important;
                 background: #ffffff !important;
                 padding: 0 !important;
-                display: block !important;
+                margin: 0 !important;
+                overflow: visible !important;
             }
-            .official-doc-actions { display: none !important; }
             .official-page {
                 box-shadow: none !important;
-                margin: 0 !important;
-                padding: 15mm 15mm !important;
+                margin: 0 auto !important;
+                padding: 12mm 14mm !important;
                 border-radius: 0 !important;
                 page-break-after: always !important;
-                min-height: 280mm !important;
+                break-after: page !important;
+                min-height: 265mm !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            .official-page:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+
+            /* الوضع 2: طباعة المرفقات الحكومية الفردية */
+            body[data-print-mode="attachment"] .main-content-area,
+            body[data-print-mode="attachment"] #official-documents-modal,
+            body[data-print-mode="attachment"] #nafathModal {
+                display: none !important;
+            }
+            body[data-print-mode="attachment"] #attachmentModal {
+                position: static !important;
+                display: block !important;
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            body[data-print-mode="attachment"] #attachmentModal .modal-box {
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: #ffffff !important;
+            }
+
+            /* الوضع 3: طباعة العقد الرسمي في المرحلة السادسة */
+            body[data-print-mode="contract"] #official-documents-modal,
+            body[data-print-mode="contract"] #attachmentModal,
+            body[data-print-mode="contract"] #nafathModal {
+                display: none !important;
+            }
+            body[data-print-mode="contract"] .contract-document-paper {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                border: 2px solid #0f172a !important;
+                box-shadow: none !important;
+                padding: 24px !important;
+            }
+
+            /* الوضع 4: طباعة البطاقة الأمنية وكشف الموظف */
+            body[data-print-mode="badge"] #official-documents-modal,
+            body[data-print-mode="badge"] #attachmentModal,
+            body[data-print-mode="badge"] #nafathModal {
+                display: none !important;
+            }
+            body[data-print-mode="badge"] .security-badge-card {
+                border: 2px solid #0f172a !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                page-break-inside: avoid !important;
             }
         }
     </style>
@@ -1987,11 +2060,11 @@
                             <h3 class="gov-card-title"><i data-lucide="file-check"></i> المرحلة السادسة: عقد العمل الموحد المعتمد رقمياً</h3>
                             <p class="gov-card-subtitle">وثيقة عمل رسمية ملزمة بموجب المادة 51 من نظام العمل ولائحته التنفيذية</p>
                         </div>
-                        <button class="btn-secondary-clean" onclick="window.print()"><i data-lucide="printer"></i> طباعة العقد الرسمي</button>
+                        <button class="btn-secondary-clean" onclick="printDocumentSection('contract')"><i data-lucide="printer"></i> طباعة العقد الرسمي</button>
                     </div>
 
                     <!-- Contract Document Paper -->
-                    <div class="contract-document-paper" style="background:#ffffff; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:32px; box-shadow:var(--shadow-sm); line-height:1.9; font-size:13px;">
+                    <div class="contract-document-paper" style="background:var(--bg-card); color:var(--text-body); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:32px; box-shadow:var(--shadow-sm); line-height:1.9; font-size:13px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--primary); padding-bottom:16px; margin-bottom:24px;">
                             <div>
                                 <h3 style="font-size:17px; font-weight:900; color:var(--text-heading);">عقد عمل حراسات أمنية مدنية خاصة</h3>
@@ -2003,7 +2076,7 @@
                             </div>
                         </div>
 
-                        <p><strong>الطرف الأول:</strong> شركة النصبان للحراسات الأمنية (سجل تجاري 1010041235 - ترخيص الأمن العام 214)، ومقرها الرئيسي: الرياض.</p>
+                        <p><strong>الطرف الأول:</strong> شركة النصبان للحراسات الأمنية (سجل تجاري 1010138495 - ترخيص الأمن العام 214)، ومقرها الرئيسي: الرياض.</p>
                         <p><strong>الطرف الثاني (الموظف):</strong> السيد/ <strong id="c_name">محمد عبدالله القحطاني</strong>، بطاقة هوية وطنية رقم (<strong id="c_id">1089271645</strong>)، هاتف (<span id="c_mobile" dir="ltr">0551234567</span>).</p>
                         <p><strong>المسمى الوظيفي:</strong> <strong id="c_role" style="color:var(--primary);">مشرف أمن وسلامة ميداني</strong> | <strong>الموقع الميداني:</strong> <span id="c_project">مشروع مجمع وزارة الداخلية - الرياض</span>.</p>
                         <p><strong>الأجر الشهري الإجمالي:</strong> مبلغ وقدره (<strong id="c_salary" style="color:var(--primary);">6,125 ر.س</strong>) يُودع شهرياً عبر نظام حماية الأجور (WPS) على الحساب البنكي (<span id="c_iban" dir="ltr">SA0380000000608010167519</span>) لدى (<span id="c_bank">مصرف الراجحي</span>).</p>
@@ -2078,9 +2151,20 @@
                             <button type="submit" class="btn-primary-red" style="width:100%; justify-content:center;">
                                 <i data-lucide="log-in"></i> تسجيل الدخول الآمن
                             </button>
-                            <button type="button" class="btn-secondary-clean" onclick="quickEmployeeDemoLogin()" style="width:100%; justify-content:center; margin-top:8px; border-color:var(--primary); color:var(--primary); font-weight:700;">
-                                <i data-lucide="zap"></i> الدخول التجريبي السريع (بنقرة واحدة)
-                            </button>
+                            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-color);">
+                                <span style="display:block; font-size:11.5px; font-weight:700; color:var(--text-muted); margin-bottom:6px; text-align:center;">⚡ حسابات تجريبية جاهزة للمعاينة والفرز الفوري (بنقرة واحدة):</span>
+                                <div style="display:grid; grid-template-columns:1fr; gap:6px;">
+                                    <button type="button" class="btn-secondary-clean" onclick="quickEmployeeDemoLogin('EMP-1042', '1089271645', '12345678')" style="width:100%; justify-content:center; border-color:var(--primary); color:var(--primary); font-weight:700; font-size:12px; padding:8px;">
+                                        <i data-lucide="zap"></i> دخول تجريبي 1: عبد الرحمن المطيري (مشرف أمن - EMP-1042)
+                                    </button>
+                                    <button type="button" class="btn-secondary-clean" onclick="quickEmployeeDemoLogin('EMP-1043', '1054398217', '12345678')" style="width:100%; justify-content:center; font-weight:700; font-size:12px; padding:8px;">
+                                        <i data-lucide="user"></i> دخول تجريبي 2: فهد بن سعد العتيبي (ضابط أمن - EMP-1043)
+                                    </button>
+                                    <button type="button" class="btn-secondary-clean" onclick="quickEmployeeDemoLogin('EMP-1044', '1098234121', '12345678')" style="width:100%; justify-content:center; font-weight:700; font-size:12px; padding:8px;">
+                                        <i data-lucide="shield"></i> دخول تجريبي 3: ماجد بن علي الزهراني (مراقب كاميرات - EMP-1044)
+                                    </button>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -2090,12 +2174,12 @@
                     <div class="gov-card">
                         <div class="gov-card-header">
                             <div style="display:flex; align-items:center; gap:16px;">
-                                <div style="width:48px; height:48px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px;">
+                                <div id="portal_emp_initials" style="width:48px; height:48px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px;">
                                     ع.م
                                 </div>
                                 <div>
-                                    <h3 style="font-size:17px; font-weight:800; color:var(--text-heading);">عبد الرحمن بن خالد المطيري</h3>
-                                    <p style="font-size:12px; color:var(--text-muted);">مشرف أمن وسلامة ميداني • مشروع مجمع وزارة الداخلية • الرقم: EMP-1042</p>
+                                    <h3 id="portal_emp_name" style="font-size:17px; font-weight:800; color:var(--text-heading);">عبد الرحمن بن خالد المطيري</h3>
+                                    <p id="portal_emp_meta" style="font-size:12px; color:var(--text-muted);">مشرف أمن وسلامة ميداني • مشروع مجمع وزارة الداخلية • الرقم: EMP-1042</p>
                                 </div>
                             </div>
                             <button class="btn-secondary-clean" onclick="logoutEmployee()"><i data-lucide="log-out"></i> خروج</button>
@@ -2137,15 +2221,29 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <button class="btn-secondary-clean" style="width:100%; margin-top:10px; font-size:12px; justify-content:center;" onclick="window.print()">
+                                <button class="btn-secondary-clean" style="width:100%; margin-top:10px; font-size:12px; justify-content:center;" onclick="printDocumentSection('badge')">
                                     <i data-lucide="printer"></i> طباعة البطاقة الأمنية
                                 </button>
                             </div>
 
-                            <!-- Pay Slips & GOSI Table -->
+                            <!-- Pay Slips & GOSI Table + Attendance -->
                             <div>
-                                <h4 style="font-size:13px; font-weight:800; color:var(--text-heading); margin-bottom:10px;">كشف مسيرات الرواتب والاستحقاق المالي (WPS)</h4>
-                                <div style="overflow-x:auto;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                                    <h4 style="font-size:13px; font-weight:800; color:var(--text-heading); margin:0;">كشف مسيرات الرواتب والاستحقاق المالي (WPS)</h4>
+                                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                        <select id="emp_payslip_filter" class="form-control" style="width:auto; padding:4px 8px; font-size:11.5px; font-weight:700;" onchange="filterEmployeePaySlips()">
+                                            <option value="all">جميع الأشهر (6 أشهر)</option>
+                                            <option value="overtime">أشهر بمكافأة مساندة إضافية</option>
+                                            <option value="regular">أشهر الراتب الأساسي فقط</option>
+                                        </select>
+                                        <select id="emp_payslip_sort" class="form-control" style="width:auto; padding:4px 8px; font-size:11.5px; font-weight:700;" onchange="filterEmployeePaySlips()">
+                                            <option value="newest">الفرز: الأحدث زمنياً</option>
+                                            <option value="net_desc">الفرز: الأعلى صافي راتب</option>
+                                            <option value="net_asc">الفرز: الأقل صافي راتب</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="overflow-x:auto; margin-bottom:20px;">
                                     <table class="gov-table">
                                         <thead>
                                             <tr>
@@ -2159,7 +2257,16 @@
                                             </tr>
                                         </thead>
                                         <tbody id="emp_payslip_table">
-                                            <tr>
+                                            <tr data-overtime="250" data-net="5826.56" data-order="1">
+                                                <td><strong>أكتوبر 2026</strong></td>
+                                                <td>4,500 ر.س</td>
+                                                <td>1,625 ر.س</td>
+                                                <td style="color:var(--success); font-weight:700;">+250 ر.س</td>
+                                                <td style="color:var(--danger);">-548.44 ر.س</td>
+                                                <td style="font-weight:900; color:var(--primary);">5,826.56 ر.س</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                            <tr data-overtime="450" data-net="6026.56" data-order="2">
                                                 <td><strong>سبتمبر 2026</strong></td>
                                                 <td>4,500 ر.س</td>
                                                 <td>1,625 ر.س</td>
@@ -2168,7 +2275,7 @@
                                                 <td style="font-weight:900; color:var(--primary);">6,026.56 ر.س</td>
                                                 <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
                                             </tr>
-                                            <tr>
+                                            <tr data-overtime="0" data-net="5576.56" data-order="3">
                                                 <td><strong>أغسطس 2026</strong></td>
                                                 <td>4,500 ر.س</td>
                                                 <td>1,625 ر.س</td>
@@ -2176,6 +2283,108 @@
                                                 <td style="color:var(--danger);">-548.44 ر.س</td>
                                                 <td style="font-weight:900; color:var(--primary);">5,576.56 ر.س</td>
                                                 <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                            <tr data-overtime="560" data-net="6136.56" data-order="4">
+                                                <td><strong>يوليو 2026</strong></td>
+                                                <td>4,500 ر.س</td>
+                                                <td>1,625 ر.س</td>
+                                                <td style="color:var(--success); font-weight:700;">+560 ر.س</td>
+                                                <td style="color:var(--danger);">-548.44 ر.س</td>
+                                                <td style="font-weight:900; color:var(--primary);">6,136.56 ر.س</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                            <tr data-overtime="225" data-net="5801.56" data-order="5">
+                                                <td><strong>يونيو 2026</strong></td>
+                                                <td>4,500 ر.س</td>
+                                                <td>1,625 ر.س</td>
+                                                <td style="color:var(--success); font-weight:700;">+225 ر.س</td>
+                                                <td style="color:var(--danger);">-548.44 ر.س</td>
+                                                <td style="font-weight:900; color:var(--primary);">5,801.56 ر.س</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                            <tr data-overtime="0" data-net="5576.56" data-order="6">
+                                                <td><strong>مايو 2026</strong></td>
+                                                <td>4,500 ر.س</td>
+                                                <td>1,625 ر.س</td>
+                                                <td>0.00 ر.س</td>
+                                                <td style="color:var(--danger);">-548.44 ر.س</td>
+                                                <td style="font-weight:900; color:var(--primary);">5,576.56 ر.س</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                                    <h4 style="font-size:13px; font-weight:800; color:var(--text-heading); margin:0;">سجل الحضور والانصراف الميداني (المناوبات)</h4>
+                                    <select id="emp_att_filter" class="form-control" style="width:auto; padding:4px 8px; font-size:11.5px; font-weight:700;" onchange="filterEmployeeAttendance()">
+                                        <option value="all">جميع الورديات (الكل)</option>
+                                        <option value="الصباحية">الوردية الصباحية</option>
+                                        <option value="المسائية">الوردية المسائية</option>
+                                        <option value="الليلية">الوردية الليلية</option>
+                                        <option value="إضافية">مناوبات مساندة إضافية</option>
+                                    </select>
+                                </div>
+                                <div style="overflow-x:auto;">
+                                    <table class="gov-table">
+                                        <thead>
+                                            <tr>
+                                                <th>التاريخ</th>
+                                                <th>الوردية</th>
+                                                <th>الموقع الأمني</th>
+                                                <th>وقت الحضور</th>
+                                                <th>وقت الانصراف</th>
+                                                <th>الحالة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="emp_attendance_table">
+                                            <tr>
+                                                <td><strong>2026-10-28</strong></td>
+                                                <td>الوردية الصباحية (07:00 - 15:00)</td>
+                                                <td>مجمع وزارة الداخلية - الرياض</td>
+                                                <td>06:52:00</td>
+                                                <td>15:03:00</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ منتظم</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>2026-10-27</strong></td>
+                                                <td>الوردية الصباحية (07:00 - 15:00)</td>
+                                                <td>مجمع وزارة الداخلية - الرياض</td>
+                                                <td>06:55:00</td>
+                                                <td>15:05:00</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ منتظم</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>2026-10-26</strong></td>
+                                                <td>الوردية المسائية (15:00 - 23:00)</td>
+                                                <td>مجمع وزارة الداخلية - الرياض</td>
+                                                <td>14:50:00</td>
+                                                <td>23:02:00</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ منتظم</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>2026-10-25</strong></td>
+                                                <td>مناوبة مساندة إضافية (15:00 - 23:00)</td>
+                                                <td>مشروع المربع الجديد - البوابة الشمالية</td>
+                                                <td>14:54:00</td>
+                                                <td>23:06:00</td>
+                                                <td><span style="background:#dbeafe; color:#1e40af; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ مساندة معتمدة</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>2026-10-24</strong></td>
+                                                <td>الوردية الليلية (23:00 - 07:00)</td>
+                                                <td>مجمع وزارة الداخلية - الرياض</td>
+                                                <td>22:51:00</td>
+                                                <td>07:04:00</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ منتظم</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>2026-10-23</strong></td>
+                                                <td>الوردية الصباحية (07:00 - 15:00)</td>
+                                                <td>مجمع وزارة الداخلية - الرياض</td>
+                                                <td>06:57:00</td>
+                                                <td>15:01:00</td>
+                                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ منتظم</span></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -2194,29 +2403,57 @@
                     <div class="gov-card-header">
                         <div>
                             <h3 class="gov-card-title"><i data-lucide="calendar-check"></i> منصة مساندة — فرص تغطية الورديات الأمنية الإضافية</h3>
-                            <p class="gov-card-subtitle">مناوبات أمنية إضافية بمكافآت فورية معتمدة وفق المادة 107 من نظام العمل</p>
+                            <p class="gov-card-subtitle">مناوبات أمنية إضافية بمكافآت فورية معتمدة وفق المادة 107 من نظام العمل (8 فرص ميدانية متاحة)</p>
                         </div>
                     </div>
 
-                    <div style="display:flex; flex-direction:column; gap:16px;">
-                        <div style="background:#ffffff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                    <!-- شريط الفرز والفلترة لمنصة مساندة -->
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:var(--bg-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:18px;">
+                        <span style="font-size:12.5px; font-weight:800; color:var(--text-heading); display:flex; align-items:center; gap:5px;">
+                            <i data-lucide="sliders-horizontal" style="width:15px; height:15px; color:var(--primary);"></i>
+                            فلترة وفرز المناوبات:
+                        </span>
+                        <select id="musanadah_project_filter" class="form-control" style="width:auto; min-width:190px; padding:6px 10px; font-size:12.5px; font-weight:700;" onchange="filterAndSortMusanadahShifts()">
+                            <option value="الكل">🏢 جميع المشاريع (الكل)</option>
+                            <option value="مشروع المربع الجديد">مشروع المربع الجديد</option>
+                            <option value="مركز الملك عبدالله المالي (KAFD)">مركز الملك عبدالله المالي (KAFD)</option>
+                            <option value="مشروع مجمع وزارة الداخلية">مشروع مجمع وزارة الداخلية</option>
+                            <option value="مشروع هيئة السوق المالية">مشروع هيئة السوق المالية</option>
+                            <option value="مشروع برج النصبان">مشروع برج النصبان</option>
+                        </select>
+                        <select id="musanadah_shift_filter" class="form-control" style="width:auto; min-width:140px; padding:6px 10px; font-size:12.5px; font-weight:700;" onchange="filterAndSortMusanadahShifts()">
+                            <option value="الكل">⏰ جميع الورديات</option>
+                            <option value="صباحي">وردية صباحية</option>
+                            <option value="مسائي">وردية مسائية</option>
+                            <option value="ليلي">وردية ليلية</option>
+                        </select>
+                        <select id="musanadah_sort_order" class="form-control" style="width:auto; min-width:175px; padding:6px 10px; font-size:12.5px; font-weight:700;" onchange="filterAndSortMusanadahShifts()">
+                            <option value="urgent">⚡ الترتيب: الأولوية الفورية</option>
+                            <option value="reward_desc">💰 المكافأة: من الأعلى للأقل</option>
+                            <option value="reward_asc">💵 المكافأة: من الأقل للأعلى</option>
+                        </select>
+                        <span id="musanadah_count_badge" style="margin-right:auto; font-size:12px; font-weight:800; color:var(--primary);">إجمالي الفرص المعروضة: 8 من 8</span>
+                    </div>
+
+                    <div id="musanadah_shifts_list" style="display:flex; flex-direction:column; gap:14px;">
+                        <div class="musanadah-shift-card" data-project="مشروع المربع الجديد" data-shift="مسائي" data-reward="250" data-priority="1" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
                             <div>
-                                <span style="background:var(--primary-light); color:var(--primary); padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">مطلوب فوري اليوم</span>
+                                <span style="background:var(--primary-light); color:var(--primary); padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">مطلوب فوري اليوم • وردية مسائية</span>
                                 <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تغطية وردية مسائية — مشروع المربع الجديد</h4>
-                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">اليوم • من 3:00 عصراً حتى 11:00 مساءً (8 ساعات) • البوابة الشمالية</p>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">اليوم • من 3:00 عصراً حتى 11:00 مساءً (8 ساعات) • البوابة الشمالية • ضابط أمن</p>
                             </div>
                             <div style="display:flex; align-items:center; gap:18px;">
                                 <div>
                                     <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
                                     <strong style="font-size:18px; color:var(--primary); font-weight:900;">250 ر.س</strong>
                                 </div>
-                                <button class="btn-primary-red" onclick="alert('تم تسجيل طلبك لتغطية الوردية، وسيصلك إشعار الموافقة خلال 15 دقيقة.')">حجز المناوبة</button>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'تغطية وردية مسائية — مشروع المربع الجديد', '250 ر.س')">حجز المناوبة</button>
                             </div>
                         </div>
 
-                        <div style="background:#ffffff; border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                        <div class="musanadah-shift-card" data-project="مركز الملك عبدالله المالي (KAFD)" data-shift="ليلي" data-reward="280" data-priority="2" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
                             <div>
-                                <span style="background:#ecfdf5; color:#065f46; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">غداً الجمعة</span>
+                                <span style="background:#ecfdf5; color:#065f46; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">غداً • وردية ليلية</span>
                                 <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تغطية وردية ليلية — مركز الملك عبدالله المالي (KAFD)</h4>
                                 <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">غداً • من 11:00 ليلاً حتى 7:00 صباحاً (8 ساعات) • غرفة العمليات والمراقبة</p>
                             </div>
@@ -2225,7 +2462,97 @@
                                     <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
                                     <strong style="font-size:18px; color:var(--primary); font-weight:900;">280 ر.س</strong>
                                 </div>
-                                <button class="btn-primary-red" onclick="alert('تم تسجيل طلبك لحجز المناوبة.')">حجز المناوبة</button>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'تغطية وردية ليلية — مركز الملك عبدالله المالي (KAFD)', '280 ر.س')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div class="musanadah-shift-card" data-project="مشروع مجمع وزارة الداخلية" data-shift="صباحي" data-reward="320" data-priority="3" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:var(--primary-light); color:var(--primary); padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">مطلوب فوري • وردية صباحية</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">إشراف أمني ميداني — مشروع مجمع وزارة الداخلية</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">غداً • من 7:00 صباحاً حتى 3:00 عصراً (8 ساعات) • بوابة كبار الشخصيات VIP • مشرف أمن</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">320 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'إشراف أمني ميداني — مشروع مجمع وزارة الداخلية', '320 ر.س')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div class="musanadah-shift-card" data-project="مشروع هيئة السوق المالية" data-shift="مسائي" data-reward="350" data-priority="4" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">السبت القادم • وردية مسائية</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تأمين برج الهيئة الرئيسي — مشروع هيئة السوق المالية</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">السبت • من 3:00 عصراً حتى 11:00 مساءً (8 ساعات) • البهو الرئيسي والتحكم بالدخول</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">350 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'تأمين برج الهيئة الرئيسي — مشروع هيئة السوق المالية', '350 ر.س')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div class="musanadah-shift-card" data-project="مشروع برج النصبان" data-shift="صباحي" data-reward="220" data-priority="5" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:#ecfdf5; color:#065f46; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">الأحد القادم • وردية صباحية</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تغطية استقبال وتصاريح الزوار — مشروع برج النصبان</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">الأحد • من 7:00 صباحاً حتى 3:00 عصراً (8 ساعات) • طريق الملك فهد • حارس أمن</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">220 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'تغطية استقبال وتصاريح الزوار — مشروع برج النصبان', '220 ر.س')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div class="musanadah-shift-card" data-project="مركز الملك عبدالله المالي (KAFD)" data-shift="صباحي" data-reward="400" data-priority="6" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:#fef3c7; color:#b45309; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">مؤتمر مالي خاص • وردية صباحية</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">تغطية وفود المؤتمر المالي — مركز الملك عبدالله المالي (KAFD)</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">الإثنين • من 7:00 صباحاً حتى 3:00 عصراً (8 ساعات) • قاعة المؤتمرات الكبرى • مشرف أمن</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">400 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'تغطية وفود المؤتمر المالي — مركز الملك عبدالله المالي (KAFD)', '400 ر.س')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div class="musanadah-shift-card" data-project="مشروع المربع الجديد" data-shift="ليلي" data-reward="300" data-priority="7" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:#dbeafe; color:#1e40af; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">الثلاثاء القادم • وردية ليلية</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">دورية أمنية متحركة — مشروع المربع الجديد</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">الثلاثاء • من 11:00 ليلاً حتى 7:00 صباحاً (8 ساعات) • القطاع الشرقي والغربي</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">300 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'دورية أمنية متحركة — مشروع المربع الجديد', '300 ر.س')">حجز المناوبة</button>
+                            </div>
+                        </div>
+
+                        <div class="musanadah-shift-card" data-project="مشروع مجمع وزارة الداخلية" data-shift="ليلي" data-reward="450" data-priority="8" style="background:var(--bg-card); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+                            <div>
+                                <span style="background:var(--primary-light); color:var(--primary); padding:3px 10px; border-radius:6px; font-size:11px; font-weight:800; display:inline-block; margin-bottom:6px;">مهمة خاصة • وردية ليلية</span>
+                                <h4 style="font-size:15px; font-weight:800; color:var(--text-heading);">إدارة غرفة التحكم المركزية CCTV — مشروع مجمع وزارة الداخلية</h4>
+                                <p style="font-size:12.5px; color:var(--text-muted); margin-top:2px;">الأربعاء • من 11:00 ليلاً حتى 7:00 صباحاً (8 ساعات) • مركز القيادة والسيطرة • مشغل غرفة عمليات</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:18px;">
+                                <div>
+                                    <span style="font-size:11px; color:var(--text-muted); display:block;">المكافأة الفورية:</span>
+                                    <strong style="font-size:18px; color:var(--primary); font-weight:900;">450 ر.س</strong>
+                                </div>
+                                <button class="btn-primary-red" onclick="bookMusanadahShift(this, 'إدارة غرفة التحكم المركزية CCTV — مشروع مجمع وزارة الداخلية', '450 ر.س')">حجز المناوبة</button>
                             </div>
                         </div>
                     </div>
@@ -2292,52 +2619,52 @@
                                 <div class="hr-status-label">الكل</div>
                             </div>
                             <div class="hr-status-card status-card-pending" onclick="filterApplicationsByStatus('قيد الانتظار', this)">
-                                <div class="hr-status-num" id="stat_pending">20</div>
+                                <div class="hr-status-num" id="stat_pending">18</div>
                                 <div class="hr-status-label">قيد الانتظار</div>
                             </div>
                             <div class="hr-status-card status-card-reviewed" onclick="filterApplicationsByStatus('تمت المراجعة', this)">
-                                <div class="hr-status-num" id="stat_reviewed">1</div>
+                                <div class="hr-status-num" id="stat_reviewed">12</div>
                                 <div class="hr-status-label">تمت المراجعة</div>
                             </div>
                             <div class="hr-status-card status-card-accepted" onclick="filterApplicationsByStatus('مقبول', this)">
-                                <div class="hr-status-num" id="stat_accepted">0</div>
+                                <div class="hr-status-num" id="stat_accepted">14</div>
                                 <div class="hr-status-label">مقبول</div>
                             </div>
                             <div class="hr-status-card status-card-rejected" onclick="filterApplicationsByStatus('مرفوض', this)">
-                                <div class="hr-status-num" id="stat_rejected">2</div>
+                                <div class="hr-status-num" id="stat_rejected">8</div>
                                 <div class="hr-status-label">مرفوض</div>
                             </div>
                             <div class="hr-status-card status-card-processing" onclick="filterApplicationsByStatus('إنهاء إجراءات', this)">
-                                <div class="hr-status-num" id="stat_processing">0</div>
+                                <div class="hr-status-num" id="stat_processing">11</div>
                                 <div class="hr-status-label">إنهاء إجراءات</div>
                             </div>
                             <div class="hr-status-card status-card-completed" onclick="filterApplicationsByStatus('مكتمل', this)">
-                                <div class="hr-status-num" id="stat_completed">85</div>
+                                <div class="hr-status-num" id="stat_completed">45</div>
                                 <div class="hr-status-label">مكتمل</div>
                             </div>
                         </div>
 
-                        <!-- 2. Search & Project Filter Bar (Matching Image 1 + Project Filtering) -->
+                        <!-- 2. Search, Multi-Filter & Sorting Bar -->
                         <div class="hr-filter-container" style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
                             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
                                 <!-- شريط البحث النصي -->
-                                <div class="hr-search-bar" style="flex:1; min-width:280px; margin-bottom:0;">
-                                    <button type="button" class="access-btn" onclick="resetApplicantFilters()" title="إعادة تعيين كافة الفلاتر والبحث" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
-                                        <i data-lucide="rotate-ccw"></i>
+                                <div class="hr-search-bar" style="flex:1; min-width:260px; margin-bottom:0;">
+                                    <button type="button" class="access-btn" onclick="resetApplicantFilters()" title="إعادة تعيين كافة الفلاتر والبحث والترتيب" style="padding:10px 14px; border:1px solid var(--border-color); border-radius:var(--radius-sm); font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                                        <i data-lucide="rotate-ccw"></i> مسح الفلاتر
                                     </button>
                                     <button type="button" class="hr-search-btn" onclick="handleApplicationSearch()">
                                         بحث
                                     </button>
-                                    <input type="text" id="app_search_input" class="hr-search-input" placeholder="بحث بالاسم أو رقم الطلب أو رقم الهوية أو المشروع..." onkeyup="if(event.key==='Enter') handleApplicationSearch()">
+                                    <input type="text" id="app_search_input" class="hr-search-input" placeholder="بحث بالاسم أو رقم الطلب أو رقم الهوية أو المدينة أو المشروع..." oninput="handleApplicationSearch()" onkeyup="if(event.key==='Enter') handleApplicationSearch()">
                                 </div>
 
                                 <!-- قائمة اختيار المشروع المقدم له -->
-                                <div style="display:flex; align-items:center; gap:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:6px 12px; box-shadow:var(--shadow-sm);">
-                                    <span style="font-size:12.5px; font-weight:800; color:var(--text-heading); display:flex; align-items:center; gap:6px; white-space:nowrap;">
-                                        <i data-lucide="building-2" style="width:16px; height:16px; color:var(--primary);"></i>
-                                        <span>المشروع المقدم له:</span>
+                                <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:6px 10px; box-shadow:var(--shadow-sm);">
+                                    <span style="font-size:12px; font-weight:800; color:var(--text-heading); display:flex; align-items:center; gap:4px; white-space:nowrap;">
+                                        <i data-lucide="building-2" style="width:15px; height:15px; color:var(--primary);"></i>
+                                        <span>المشروع:</span>
                                     </span>
-                                    <select id="app_project_filter" class="form-control" style="width:auto; min-width:220px; padding:6px 10px; font-size:13px; font-weight:700; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-subtle); color:var(--text-heading);" onchange="filterApplicationsByProject(this.value)">
+                                    <select id="app_project_filter" class="form-control" style="width:auto; min-width:190px; padding:5px 8px; font-size:12.5px; font-weight:700; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-subtle); color:var(--text-heading);" onchange="filterApplicationsByProject(this.value)">
                                         <option value="الكل">🏢 جميع المشاريع (الكل)</option>
                                         <option value="مشروع مجمع وزارة الداخلية">مشروع مجمع وزارة الداخلية</option>
                                         <option value="مشروع المربع الجديد">مشروع المربع الجديد</option>
@@ -2346,17 +2673,61 @@
                                         <option value="مشروع برج النصبان">مشروع برج النصبان</option>
                                     </select>
                                 </div>
+
+                                <!-- قائمة فلترة المسمى الوظيفي -->
+                                <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:6px 10px; box-shadow:var(--shadow-sm);">
+                                    <span style="font-size:12px; font-weight:800; color:var(--text-heading); white-space:nowrap;">المسمى:</span>
+                                    <select id="app_job_filter" class="form-control" style="width:auto; min-width:140px; padding:5px 8px; font-size:12.5px; font-weight:700; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-subtle); color:var(--text-heading);" onchange="filterApplicationsByJob(this.value)">
+                                        <option value="الكل">👮 جميع المسميات</option>
+                                        <option value="ضابط أمن">ضابط أمن</option>
+                                        <option value="مشرف أمن">مشرف أمن</option>
+                                        <option value="مدير مشروع أمن">مدير مشروع أمن</option>
+                                        <option value="حارس أمن">حارس أمن</option>
+                                        <option value="مشغل غرفة عمليات">مشغل غرفة عمليات</option>
+                                    </select>
+                                </div>
+
+                                <!-- قائمة فلترة الوردية -->
+                                <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:6px 10px; box-shadow:var(--shadow-sm);">
+                                    <span style="font-size:12px; font-weight:800; color:var(--text-heading); white-space:nowrap;">الوردية:</span>
+                                    <select id="app_shift_filter" class="form-control" style="width:auto; min-width:115px; padding:5px 8px; font-size:12.5px; font-weight:700; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-subtle); color:var(--text-heading);" onchange="filterApplicationsByShift(this.value)">
+                                        <option value="الكل">⏰ الكل</option>
+                                        <option value="صباحي">صباحي</option>
+                                        <option value="مسائي">مسائي</option>
+                                        <option value="ليلي">ليلي</option>
+                                    </select>
+                                </div>
+
+                                <!-- قائمة الفرز والترتيب -->
+                                <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); border:1.5px solid var(--primary-border); border-radius:var(--radius-sm); padding:6px 10px; box-shadow:var(--shadow-sm);">
+                                    <span style="font-size:12px; font-weight:800; color:var(--primary); white-space:nowrap;">↕️ الفرز والترتيب:</span>
+                                    <select id="app_sort_order" class="form-control" style="width:auto; min-width:165px; padding:5px 8px; font-size:12.5px; font-weight:700; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-subtle); color:var(--text-heading);" onchange="sortApplicationsBy(this.value)">
+                                        <option value="newest">الأحدث تقديماً</option>
+                                        <option value="oldest">الأقدم تقديماً</option>
+                                        <option value="name_asc">الاسم أبجدياً (أ - ي)</option>
+                                        <option value="name_desc">الاسم أبجدياً (ي - أ)</option>
+                                        <option value="project">حسب المشروع</option>
+                                        <option value="status">حسب حالة الطلب</option>
+                                        <option value="job">حسب المسمى الوظيفي</option>
+                                        <option value="start_date">حسب تاريخ المباشرة</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <!-- وسوم فلترة سريعة للمشاريع النشطة (Project Badges Pill Strip) -->
                             <div id="project_pills_strip" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; align-items:center; font-size:12px;">
                                 <span style="font-size:11.5px; color:var(--text-muted); font-weight:700; white-space:nowrap;">فلترة سريعة بالمشروع:</span>
                                 <button type="button" class="project-pill active" data-project="الكل" onclick="filterApplicationsByProject('الكل', this)">الكل (108)</button>
-                                <button type="button" class="project-pill" data-project="مشروع مجمع وزارة الداخلية" onclick="filterApplicationsByProject('مشروع مجمع وزارة الداخلية', this)">مجمع وزارة الداخلية (83)</button>
-                                <button type="button" class="project-pill" data-project="مشروع المربع الجديد" onclick="filterApplicationsByProject('مشروع المربع الجديد', this)">المربع الجديد (22)</button>
-                                <button type="button" class="project-pill" data-project="مشروع مركز الملك عبدالله المالي (KAFD)" onclick="filterApplicationsByProject('مشروع مركز الملك عبدالله المالي (KAFD)', this)">مركز KAFD (1)</button>
-                                <button type="button" class="project-pill" data-project="مشروع هيئة السوق المالية" onclick="filterApplicationsByProject('مشروع هيئة السوق المالية', this)">هيئة السوق المالية (1)</button>
-                                <button type="button" class="project-pill" data-project="مشروع برج النصبان" onclick="filterApplicationsByProject('مشروع برج النصبان', this)">برج النصبان (1)</button>
+                                <button type="button" class="project-pill" data-project="مشروع مجمع وزارة الداخلية" onclick="filterApplicationsByProject('مشروع مجمع وزارة الداخلية', this)">مشروع مجمع وزارة الداخلية (22)</button>
+                                <button type="button" class="project-pill" data-project="مشروع المربع الجديد" onclick="filterApplicationsByProject('مشروع المربع الجديد', this)">مشروع المربع الجديد (23)</button>
+                                <button type="button" class="project-pill" data-project="مشروع مركز الملك عبدالله المالي (KAFD)" onclick="filterApplicationsByProject('مشروع مركز الملك عبدالله المالي (KAFD)', this)">مشروع مركز الملك عبدالله المالي (KAFD) (22)</button>
+                                <button type="button" class="project-pill" data-project="مشروع هيئة السوق المالية" onclick="filterApplicationsByProject('مشروع هيئة السوق المالية', this)">مشروع هيئة السوق المالية (21)</button>
+                                <button type="button" class="project-pill" data-project="مشروع برج النصبان" onclick="filterApplicationsByProject('مشروع برج النصبان', this)">مشروع برج النصبان (20)</button>
+                            </div>
+
+                            <!-- شريط عداد النتائج الحية وحالة الفرز -->
+                            <div id="hr_results_count_badge" style="background:var(--bg-subtle); border:1px solid var(--border-color); border-radius:6px; padding:8px 14px; font-size:12.5px; color:var(--text-body);">
+                                📊 إجمالي النتائج المعروضة: <strong style="color:var(--primary); font-size:13.5px;">108</strong> من أصل <strong>108</strong> مرشح · الترتيب: <strong>الأحدث تقديماً</strong> · عرض شامل لجميع السجلات
                             </div>
                         </div>
 
@@ -2387,28 +2758,47 @@
                             <div class="metrics-grid" style="margin-bottom:24px;">
                                 <div class="metric-box" style="padding:12px;">
                                     <div>
-                                        <div class="metric-number" style="font-size:22px; color:var(--primary);">100%</div>
+                                        <div class="metric-number" id="audit_stat_saudization" style="font-size:22px; color:var(--primary);">100%</div>
                                         <div class="metric-label">التوطين الميداني (نطاق بلاتيني)</div>
                                     </div>
                                 </div>
                                 <div class="metric-box" style="padding:12px;">
                                     <div>
-                                        <div class="metric-number" style="font-size:22px; color:#059669;">12</div>
+                                        <div class="metric-number" id="audit_stat_contracts" style="font-size:22px; color:#059669;">3</div>
                                         <div class="metric-label">عقود موثقة عبر نفاذ</div>
                                     </div>
                                 </div>
                                 <div class="metric-box" style="padding:12px;">
                                     <div>
-                                        <div class="metric-number" style="font-size:22px;">0</div>
-                                        <div class="metric-label">مخالفات أمنية مسجلة</div>
+                                        <div class="metric-number" id="audit_stat_logs" style="font-size:22px;">12</div>
+                                        <div class="metric-label">عمليات التدقيق المسجلة (PDPL)</div>
                                     </div>
                                 </div>
                                 <div class="metric-box" style="padding:12px;">
                                     <div>
-                                        <div class="metric-number" style="font-size:22px;">4,500+</div>
+                                        <div class="metric-number" id="audit_stat_employees" style="font-size:22px;">4,500+</div>
                                         <div class="metric-label">إجمالي الكوادر الميدانية</div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- شريط فلترة وفرز سجلات الامتثال PDPL -->
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:var(--bg-subtle); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px;">
+                                <span style="font-size:12.5px; font-weight:800; color:var(--text-heading);">🔍 فرز وفلترة السجل الأمني:</span>
+                                <input type="text" id="audit_search_input" class="form-control" style="width:auto; min-width:220px; padding:5px 10px; font-size:12.5px;" placeholder="بحث بالمستخدم أو نوع الإجراء أو المورد..." oninput="filterAndSortAuditLogs()">
+                                <select id="audit_severity_filter" class="form-control" style="width:auto; min-width:155px; padding:5px 10px; font-size:12.5px; font-weight:700;" onchange="filterAndSortAuditLogs()">
+                                    <option value="ALL">جميع المستويات (الكل)</option>
+                                    <option value="INFO">مستوى اعتيادي (INFO)</option>
+                                    <option value="WARNING">تنبيه أمني (WARNING)</option>
+                                    <option value="CRITICAL">حرج وعالي (CRITICAL)</option>
+                                </select>
+                                <select id="audit_role_filter" class="form-control" style="width:auto; min-width:155px; padding:5px 10px; font-size:12.5px; font-weight:700;" onchange="filterAndSortAuditLogs()">
+                                    <option value="ALL">جميع الصلاحيات</option>
+                                    <option value="admin">مدير النظام (admin)</option>
+                                    <option value="hr_manager">مدير موارد بشرية (hr_manager)</option>
+                                    <option value="employee">موظف أمن (employee)</option>
+                                    <option value="applicant">مرشح توظيف (applicant)</option>
+                                </select>
                             </div>
 
                             <!-- Audit Logs Table -->
@@ -2426,14 +2816,59 @@
                                         </tr>
                                     </thead>
                                     <tbody id="hr_audit_logs_table">
-                                        <tr>
-                                            <td>2026-10-28 10:00:15</td>
-                                            <td>سلطان بن إبراهيم المنصور</td>
-                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">HR Manager</span></td>
-                                            <td><code>AUTH_LOGIN_SUCCESS</code></td>
-                                            <td>HR_PORTAL</td>
-                                            <td>127.0.0.1</td>
+                                        <tr data-severity="INFO" data-role="hr_manager">
+                                            <td>2026-10-28 15:30:12</td>
+                                            <td><strong>سلطان بن إبراهيم المنصور</strong></td>
+                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">hr_manager</span></td>
+                                            <td><code>HR_APPLICATIONS_VIEW</code></td>
+                                            <td>APPLICATIONS_DIRECTORY</td>
+                                            <td><code>10.24.18.105</code></td>
                                             <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">INFO</span></td>
+                                        </tr>
+                                        <tr data-severity="WARNING" data-role="anonymous">
+                                            <td>2026-10-28 14:48:05</td>
+                                            <td><strong>محاولة دخول خارجية</strong></td>
+                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">anonymous</span></td>
+                                            <td><code>AUTH_LOGIN_FAILED</code></td>
+                                            <td>HR_PORTAL</td>
+                                            <td><code>172.16.40.89</code></td>
+                                            <td><span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-weight:700;">WARNING</span></td>
+                                        </tr>
+                                        <tr data-severity="CRITICAL" data-role="admin">
+                                            <td>2026-10-28 13:15:40</td>
+                                            <td><strong>خالد بن فهد العتيبي (المدير التنفيذي)</strong></td>
+                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">admin</span></td>
+                                            <td><code>PDPL_ENCRYPTION_KEY_AUDIT</code></td>
+                                            <td>AES256_GCM_VAULT</td>
+                                            <td><code>10.24.18.101</code></td>
+                                            <td><span style="background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px; font-weight:700;">CRITICAL</span></td>
+                                        </tr>
+                                        <tr data-severity="INFO" data-role="applicant">
+                                            <td>2026-10-28 12:20:09</td>
+                                            <td><strong>راضي غازي فهاد الشمري</strong></td>
+                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">applicant</span></td>
+                                            <td><code>CONTRACT_DIGITAL_SIGN_SHA256</code></td>
+                                            <td>ANS-2026-CT-1003</td>
+                                            <td><code>192.168.10.55</code></td>
+                                            <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">INFO</span></td>
+                                        </tr>
+                                        <tr data-severity="INFO" data-role="employee">
+                                            <td>2026-10-28 11:05:33</td>
+                                            <td><strong>عبد الرحمن بن خالد المطيري</strong></td>
+                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">employee</span></td>
+                                            <td><code>PAYSLIP_WPS_DOWNLOAD</code></td>
+                                            <td>EMP-1042</td>
+                                            <td><code>192.168.12.14</code></td>
+                                            <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">INFO</span></td>
+                                        </tr>
+                                        <tr data-severity="WARNING" data-role="hr_manager">
+                                            <td>2026-10-28 10:12:44</td>
+                                            <td><strong>سلطان بن إبراهيم المنصور</strong></td>
+                                            <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">hr_manager</span></td>
+                                            <td><code>APPLICATION_STATUS_REJECT</code></td>
+                                            <td>APP-20261048-REJ48</td>
+                                            <td><code>10.24.18.105</code></td>
+                                            <td><span style="background:#fef3c7; color:#b45309; padding:2px 6px; border-radius:4px; font-weight:700;">WARNING</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -2529,7 +2964,7 @@
                     </div>
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-primary-red" onclick="window.print()" style="font-size:13.5px; padding:8px 16px;">
+                    <button class="btn-primary-red" onclick="printDocumentSection('docs')" style="font-size:13.5px; padding:8px 16px;">
                         <i data-lucide="printer"></i> طباعة الوثائق / حفظ كـ PDF
                     </button>
                     <button class="btn-secondary-clean" onclick="closeOfficialDocsModal()" style="font-size:13.5px; padding:8px 16px;">
@@ -2553,7 +2988,10 @@
                 <button type="button" class="access-btn" onclick="closeAttachmentModal()"><i data-lucide="x"></i></button>
             </div>
             <div id="attach_modal_body" style="padding:10px 0;"></div>
-            <div style="text-align:left; margin-top:14px;">
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+                <button type="button" class="btn-primary-red" onclick="printDocumentSection('attachment')" style="font-size:12.5px; padding:7px 14px;">
+                    <i data-lucide="printer"></i> طباعة المستند
+                </button>
                 <button type="button" class="btn-secondary-clean" onclick="closeAttachmentModal()">إغلاق</button>
             </div>
         </div>
@@ -2561,6 +2999,12 @@
 
     <!-- 8. الكود البرمجي التفاعلي والربط مع الخادم الخلفي (JavaScript) -->
     <script>
+        // إعداد المتغيرات العامة الأساسية فوراً لمنع أي خطأ تهيئة مسبقة (TDZ)
+        var sigCanvas = null, sigCtx = null, isDrawing = false, hasSigned = false;
+        var currentSignatureMode = 'draw';
+        window.API_BASE = (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000';
+        var API_BASE = window.API_BASE;
+
         // إعداد الأيقونات الآمن
         safeRenderIcons();
 
@@ -2594,7 +3038,7 @@
             if (label) label.innerText = isDark ? 'الوضع النهاري' : 'الوضع المظلم';
 
             if (sigCtx) {
-                sigCtx.strokeStyle = isDark ? '#f43f5e' : '#0f172a';
+                try { sigCtx.strokeStyle = isDark ? '#f43f5e' : '#0f172a'; } catch(e) {}
             }
 
             safeRenderIcons();
@@ -2610,10 +3054,6 @@
         const savedTheme = localStorage.getItem('annasban_theme') || 
             (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         applyTheme(savedTheme);
-
-        // --- لوحة التوقيع التفاعلية المزدوجة (Dual-Mode Signature Pad) ---
-        let sigCanvas, sigCtx, isDrawing = false, hasSigned = false;
-        let currentSignatureMode = 'draw'; // 'draw' | 'type'
 
         function setSignatureMode(mode) {
             currentSignatureMode = mode;
@@ -2789,8 +3229,65 @@
             safeRenderIcons();
         }
 
-        // --- خطوات منصة التوظيف (Stepper) ---
+        // --- محرك أوامر الطباعة الرسمي الموحد (4 أوضاع طباعة معتمدة) ---
+        function printDocumentSection(mode) {
+            const targetMode = mode || 'docs';
+            document.body.setAttribute('data-print-mode', targetMode);
+            const cleanup = () => {
+                document.body.removeAttribute('data-print-mode');
+                window.removeEventListener('afterprint', cleanup);
+            };
+            window.addEventListener('afterprint', cleanup);
+            setTimeout(() => {
+                window.print();
+                setTimeout(cleanup, 600);
+            }, 60);
+        }
+
+        // --- حجز مناوبات منصة مساندة ---
+        function bookMusanadahShift(btn, title, reward) {
+            if (!btn || btn.disabled) return;
+            btn.disabled = true;
+            btn.style.background = '#059669';
+            btn.style.borderColor = '#059669';
+            btn.innerHTML = '✓ تم الحجز وبانتظار الاعتماد';
+            alert(`✓ تم تسجيل طلبك لتغطية الوردية (${title}) بمكافأة فورية (${reward}).\nسيصلك إشعار التأكيد خلال 15 دقيقة.`);
+        }
+
+        // --- خطوات منصة التوظيف (Stepper) مع التحقق الإلزامي من صحة البيانات ---
         function goToStep(stepNum) {
+            if (stepNum > 1) {
+                const nameInput = document.getElementById('app_name');
+                const idInput = document.getElementById('app_id');
+                const mobInput = document.getElementById('app_mobile');
+                if (!nameInput || nameInput.value.trim().length < 3) {
+                    alert('الرجاء إدخال الاسم الرباعي الكامل حسب الهوية الوطنية في المرحلة الأولى.');
+                    return goToStep(1);
+                }
+                if (idInput && !validateSaudiID(idInput)) {
+                    alert('الرجاء إدخال رقم هوية وطنية سعودية صحيح ومطابق لخوارزمية لُهن (10 أرقام) في المرحلة الأولى.');
+                    return goToStep(1);
+                }
+                if (mobInput && !validateSaudiMobile(mobInput)) {
+                    alert('الرجاء إدخال رقم جوال سعودي صحيح يبدأ بـ 05 ويتكون من 10 أرقام في المرحلة الأولى.');
+                    return goToStep(1);
+                }
+            }
+            if (stepNum > 4) {
+                const ibanInput = document.getElementById('app_iban');
+                if (ibanInput && !validateSaudiIBAN(ibanInput)) {
+                    alert('الرجاء إدخال رقم آيبان بنكي سعودي صحيح (SA + 22 رقماً) ومطابق لمعيار SAMA في المرحلة الرابعة.');
+                    return goToStep(4);
+                }
+            }
+            if (stepNum === 6) {
+                const btnStep6 = document.getElementById('btn_to_step6');
+                if (btnStep6 && btnStep6.disabled) {
+                    alert('يرجى إتمام التوثيق الرقمي عبر نفاذ الوطني في المرحلة الخامسة أولاً قبل معاينة وتوقيع العقد.');
+                    return goToStep(5);
+                }
+            }
+
             for (let i = 1; i <= 6; i++) {
                 const content = document.getElementById('step-content-' + i);
                 const pill = document.getElementById('st-' + i);
@@ -2910,10 +3407,10 @@
             }
         }
 
-        // --- سلم الرواتب ---
+        // --- سلم الرواتب المتوافق مع الحد الأدنى للتوطين (4,000 ريال أساسي كحد أدنى) ---
         const SALARY_STRUCTURE = {
             "مشرف أمن وسلامة": { basic: "4,500", housing: "1,125", transport: "500", total: "6,125 ر.س" },
-            "ضابط أمن": { basic: "3,800", housing: "950", transport: "500", total: "5,250 ر.س" },
+            "ضابط أمن": { basic: "4,000", housing: "1,000", transport: "500", total: "5,500 ر.س" },
             "مشرف عمليات أمنية": { basic: "5,000", housing: "1,250", transport: "600", total: "6,850 ر.س" },
             "مدير مشروع أمن": { basic: "8,500", housing: "2,125", transport: "1,000", total: "11,625 ر.س" }
         };
@@ -2927,9 +3424,17 @@
         }
 
         // --- الربط مع الواجهات البرمجية وتكامل نفاذ ---
-        const API_BASE = (window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000';
-        let currentAuthToken = sessionStorage.getItem('annasban_token') || null;
+        // ملاحظة: API_BASE مهيأة مسبقاً في أعلى السكربت
+        let currentHrToken = sessionStorage.getItem('annasban_hr_token') || sessionStorage.getItem('annasban_token') || null;
+        let currentEmpToken = sessionStorage.getItem('annasban_emp_token') || null;
+        let currentAuthToken = currentHrToken || currentEmpToken || null;
+        window.currentHrToken = currentHrToken;
+        window.currentEmpToken = currentEmpToken;
+        window.currentAuthToken = currentAuthToken;
         let currentNafathTransId = null;
+        let cachedAuditLogs = [];
+        let cachedPaySlips = [];
+        let cachedAttendance = [];
 
         async function openNafathModal() {
             const nationalId = document.getElementById('app_id').value || '1089271645';
@@ -2983,6 +3488,9 @@
             const iban = document.getElementById('app_iban').value || 'SA0380000000608010167519';
             const bank = document.getElementById('app_bank_name').value || 'مصرف الراجحي';
             const salary = document.getElementById('sal_total').innerText;
+            const basicText = document.getElementById('sal_basic')?.innerText || '4,500';
+            const housingText = document.getElementById('sal_housing')?.innerText || '1,125';
+            const transportText = document.getElementById('sal_transport')?.innerText || '500';
 
             document.getElementById('c_name').innerText = name;
             document.getElementById('c_id').innerText = id;
@@ -3006,15 +3514,20 @@
             }
 
             try {
-                const basicVal = parseFloat(salary.replace(/[^\d.]/g, '')) || 4500;
+                const basicVal = parseFloat(basicText.replace(/[^\d.]/g, '')) || 4500;
+                const housingVal = parseFloat(housingText.replace(/[^\d.]/g, '')) || 1125;
+                const transportVal = parseFloat(transportText.replace(/[^\d.]/g, '')) || 500;
                 const signRes = await fetch(API_BASE + '/api/contracts/sign', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         fullName: name,
                         nationalId: id,
+                        phone: mobile,
                         jobTitle: role,
                         basicSalary: basicVal,
+                        housingAllowance: housingVal,
+                        transportAllowance: transportVal,
                         nafathTransId: currentNafathTransId || 'NF-LOCAL-VERIFIED'
                     })
                 });
@@ -3026,55 +3539,265 @@
                     }
                 }
             } catch (e) {}
+            safeRenderIcons();
+        }
+
+        // --- تحميل مسيرات الرواتب وسجلات الحضور للموظف المسجل مع دعم الفرز والفلترة ---
+        function renderEmployeePaySlipsTable(slips) {
+            const tbody = document.getElementById('emp_payslip_table');
+            if (!tbody || !slips || slips.length === 0) return;
+            const filterVal = document.getElementById('emp_payslip_filter')?.value || 'all';
+            const sortVal = document.getElementById('emp_payslip_sort')?.value || 'newest';
+
+            let list = slips.map((s, idx) => ({ ...s, _idx: idx }));
+            if (filterVal === 'overtime') {
+                list = list.filter(s => parseFloat(s.overtime_amount || 0) > 0);
+            } else if (filterVal === 'regular') {
+                list = list.filter(s => parseFloat(s.overtime_amount || 0) === 0);
+            }
+
+            list.sort((a, b) => {
+                if (sortVal === 'net_desc') return parseFloat(b.net_salary || 0) - parseFloat(a.net_salary || 0);
+                if (sortVal === 'net_asc') return parseFloat(a.net_salary || 0) - parseFloat(b.net_salary || 0);
+                return a._idx - b._idx;
+            });
+
+            tbody.innerHTML = list.map(s => {
+                const allowances = (parseFloat(s.housing_allowance || 0) + parseFloat(s.transport_allowance || 0)).toLocaleString('en-US');
+                const basic = parseFloat(s.basic_salary || 0).toLocaleString('en-US');
+                const overtime = parseFloat(s.overtime_amount || 0);
+                const gosi = parseFloat(s.gosi_deduction || 0).toFixed(2);
+                const net = parseFloat(s.net_salary || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return `
+                    <tr data-overtime="${overtime}" data-net="${parseFloat(s.net_salary || 0)}" data-order="${s._idx}">
+                        <td><strong>${s.month_period}</strong></td>
+                        <td>${basic} ر.س</td>
+                        <td>${allowances} ر.س</td>
+                        <td style="${overtime > 0 ? 'color:var(--success); font-weight:700;' : ''}">${overtime > 0 ? '+' + overtime + ' ر.س' : '0.00 ر.س'}</td>
+                        <td style="color:var(--danger);">-${gosi} ر.س</td>
+                        <td style="font-weight:900; color:var(--primary);">${net} ر.س</td>
+                        <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ أودع بالبنك</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterEmployeePaySlips() {
+            if (cachedPaySlips && cachedPaySlips.length > 0) {
+                renderEmployeePaySlipsTable(cachedPaySlips);
+                return;
+            }
+            const tbody = document.getElementById('emp_payslip_table');
+            if (!tbody) return;
+            const filterVal = document.getElementById('emp_payslip_filter')?.value || 'all';
+            const sortVal = document.getElementById('emp_payslip_sort')?.value || 'newest';
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.forEach(r => {
+                const ot = parseFloat(r.getAttribute('data-overtime') || '0');
+                let show = true;
+                if (filterVal === 'overtime') show = ot > 0;
+                else if (filterVal === 'regular') show = ot === 0;
+                r.style.display = show ? '' : 'none';
+            });
+            rows.sort((a, b) => {
+                if (sortVal === 'net_desc') return parseFloat(b.getAttribute('data-net') || '0') - parseFloat(a.getAttribute('data-net') || '0');
+                if (sortVal === 'net_asc') return parseFloat(a.getAttribute('data-net') || '0') - parseFloat(b.getAttribute('data-net') || '0');
+                return parseInt(a.getAttribute('data-order') || '0', 10) - parseInt(b.getAttribute('data-order') || '0', 10);
+            });
+            rows.forEach(r => tbody.appendChild(r));
+        }
+
+        function filterEmployeeAttendance() {
+            const attBody = document.getElementById('emp_attendance_table');
+            if (!attBody) return;
+            const filterVal = document.getElementById('emp_att_filter')?.value || 'all';
+            Array.from(attBody.querySelectorAll('tr')).forEach(r => {
+                if (filterVal === 'all') {
+                    r.style.display = '';
+                } else {
+                    r.style.display = r.innerText.includes(filterVal) ? '' : 'none';
+                }
+            });
+        }
+
+        function filterAndSortMusanadahShifts() {
+            const container = document.getElementById('musanadah_shifts_list');
+            if (!container) return;
+            const projFilter = document.getElementById('musanadah_project_filter')?.value || 'الكل';
+            const shiftFilter = document.getElementById('musanadah_shift_filter')?.value || 'الكل';
+            const sortOrder = document.getElementById('musanadah_sort_order')?.value || 'urgent';
+
+            const cards = Array.from(container.querySelectorAll('.musanadah-shift-card'));
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const cProj = card.getAttribute('data-project') || '';
+                const cShift = card.getAttribute('data-shift') || '';
+                const matchProj = (projFilter === 'الكل' || cProj === projFilter);
+                const matchShift = (shiftFilter === 'الكل' || cShift === shiftFilter);
+                const show = matchProj && matchShift;
+                card.style.display = show ? 'flex' : 'none';
+                if (show) visibleCount++;
+            });
+
+            cards.sort((a, b) => {
+                if (sortOrder === 'reward_desc') return parseFloat(b.getAttribute('data-reward') || '0') - parseFloat(a.getAttribute('data-reward') || '0');
+                if (sortOrder === 'reward_asc') return parseFloat(a.getAttribute('data-reward') || '0') - parseFloat(b.getAttribute('data-reward') || '0');
+                return parseInt(a.getAttribute('data-priority') || '0', 10) - parseInt(b.getAttribute('data-priority') || '0', 10);
+            });
+            cards.forEach(card => container.appendChild(card));
+
+            const badge = document.getElementById('musanadah_count_badge');
+            if (badge) badge.innerText = `إجمالي الفرص المعروضة: ${visibleCount} من ${cards.length}`;
+        }
+
+        async function loadEmployeePortalData() {
+            const token = currentEmpToken || currentAuthToken;
+            if (!token) return;
+            const headers = { 'Authorization': 'Bearer ' + token };
+            try {
+                const slipRes = await fetch(API_BASE + '/api/employees/pay-slips', { headers });
+                if (slipRes.ok) {
+                    const slipJson = await slipRes.json();
+                    const slips = slipJson.data?.paySlips || [];
+                    if (slips.length > 0) {
+                        cachedPaySlips = slips;
+                        renderEmployeePaySlipsTable(slips);
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const attRes = await fetch(API_BASE + '/api/employees/attendance', { headers });
+                if (attRes.ok) {
+                    const attJson = await attRes.json();
+                    const records = attJson.data?.attendance || [];
+                    const attBody = document.getElementById('emp_attendance_table');
+                    if (attBody && records.length > 0) {
+                        cachedAttendance = records;
+                        attBody.innerHTML = records.map(r => `
+                            <tr>
+                                <td><strong>${r.date}</strong></td>
+                                <td>${r.shift_name}</td>
+                                <td>${r.location_name}</td>
+                                <td>${r.check_in}</td>
+                                <td>${r.check_out}</td>
+                                <td><span style="background:#ecfdf5; color:#065f46; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700;">✓ منتظم</span></td>
+                            </tr>
+                        `).join('');
+                        filterEmployeeAttendance();
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function updateEmployeePortalUI(u) {
+            if (!u) return;
+            const parts = String(u.fullName || 'موظف أمن').trim().split(/\s+/);
+            const initials = parts.length > 1 ? (parts[0][0] + '.' + parts[parts.length - 1][0]) : parts[0].slice(0, 2);
+            const elInit = document.getElementById('portal_emp_initials');
+            const elName = document.getElementById('portal_emp_name');
+            const elMeta = document.getElementById('portal_emp_meta');
+            if (elInit) elInit.innerText = initials;
+            if (elName) elName.innerText = u.fullName;
+            if (elMeta) elMeta.innerText = `${u.jobTitle || 'ضابط أمن'} • ${u.assignedLocation || 'المركز الرئيسي'} • الرقم: ${u.employeeId || 'EMP-1042'}`;
+
+            document.getElementById('badge_name').innerText = u.fullName;
+            document.getElementById('badge_emp_id').innerText = u.employeeId;
+            document.getElementById('badge_nid').innerText = u.nationalId ? u.nationalId.slice(0, 4) + '****' + u.nationalId.slice(-2) : '1089****45';
+            document.getElementById('badge_role').innerText = u.jobTitle;
+            document.getElementById('badge_location').innerText = u.assignedLocation;
         }
 
         // --- دخول الموظف ---
         async function handleEmployeeLogin(e) {
-            e.preventDefault();
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
             const ans = document.getElementById('captcha_answer').value;
             if (parseInt(ans, 10) !== 7) {
                 alert('خطأ في التحقق الأمني البشري، الرجاء إدخال الناتج الصحيح (4 + 3 = 7)');
                 return;
             }
-            const empId = document.getElementById('emp_login_num').value;
-            const nid = document.getElementById('emp_login_id').value;
+            const empId = document.getElementById('emp_login_num').value.trim();
+            const nid = document.getElementById('emp_login_id').value.trim();
             const pass = document.getElementById('emp_login_pass').value;
 
             try {
                 const res = await fetch(API_BASE + '/api/auth/employee-login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nationalId: nid, employeeId: empId, password: pass })
+                    body: JSON.stringify({ nationalId: nid, employeeId: empId, password: pass, captchaAnswer: Number(ans) })
                 });
-                if (res.ok) {
-                    const json = await res.json();
-                    const u = json.data.user;
-                    currentAuthToken = json.data.token;
-                    sessionStorage.setItem('annasban_token', currentAuthToken);
-
-                    document.getElementById('badge_name').innerText = u.fullName;
-                    document.getElementById('badge_emp_id').innerText = u.employeeId;
-                    document.getElementById('badge_nid').innerText = u.nationalId ? u.nationalId.slice(0, 4) + '****' + u.nationalId.slice(-2) : '1089****45';
-                    document.getElementById('badge_role').innerText = u.jobTitle;
-                    document.getElementById('badge_location').innerText = u.assignedLocation;
+                const json = await res.json();
+                if (!res.ok) {
+                    alert(json.message || 'بيانات الهوية أو كلمة المرور غير صحيحة');
+                    return;
                 }
-            } catch (err) {}
+                const u = json.data.user;
+                currentEmpToken = json.data.token;
+                window.currentEmpToken = currentEmpToken;
+                sessionStorage.setItem('annasban_emp_token', currentEmpToken);
+                if (!currentHrToken) {
+                    currentAuthToken = currentEmpToken;
+                    window.currentAuthToken = currentEmpToken;
+                    sessionStorage.setItem('annasban_token', currentEmpToken);
+                }
 
-            document.getElementById('portal-login-box').style.display = 'none';
-            document.getElementById('portal-dashboard').style.display = 'block';
-            safeRenderIcons();
+                updateEmployeePortalUI(u);
+                await loadEmployeePortalData();
+
+                document.getElementById('portal-login-box').style.display = 'none';
+                document.getElementById('portal-dashboard').style.display = 'block';
+                safeRenderIcons();
+                return;
+            } catch (err) {
+                const demoEmployees = {
+                    'EMP-1042': { fullName: 'عبد الرحمن بن خالد المطيري', employeeId: 'EMP-1042', nationalId: '1089271645', jobTitle: 'مشرف أمن وسلامة ميداني', assignedLocation: 'مجمع وزارة الداخلية - الرياض' },
+                    'EMP-1043': { fullName: 'فهد بن سعد العتيبي', employeeId: 'EMP-1043', nationalId: '1054398217', jobTitle: 'ضابط أمن ميداني', assignedLocation: 'مشروع المربع الجديد - الرياض' },
+                    'EMP-1044': { fullName: 'ماجد بن علي الزهراني', employeeId: 'EMP-1044', nationalId: '1098234121', jobTitle: 'مراقب كاميرات أمنية (CCTV)', assignedLocation: 'مركز الملك عبدالله المالي (KAFD)' }
+                };
+                const demoUser = demoEmployees[empId] || (nid === '1089271645' ? demoEmployees['EMP-1042'] : null);
+                if (demoUser && pass === '12345678') {
+                    updateEmployeePortalUI(demoUser);
+                    document.getElementById('portal-login-box').style.display = 'none';
+                    document.getElementById('portal-dashboard').style.display = 'block';
+                    safeRenderIcons();
+                } else {
+                    alert('بيانات الهوية أو كلمة المرور غير صحيحة.');
+                }
+            }
         }
 
         function logoutEmployee() {
-            sessionStorage.removeItem('annasban_token');
+            currentEmpToken = null;
+            window.currentEmpToken = null;
+            sessionStorage.removeItem('annasban_emp_token');
             document.getElementById('portal-login-box').style.display = 'block';
             document.getElementById('portal-dashboard').style.display = 'none';
         }
 
+        async function loadHrDashboardStats() {
+            const token = currentHrToken || currentAuthToken;
+            if (!token) return;
+            try {
+                const res = await fetch(API_BASE + '/api/dashboard/stats', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    const st = json.data?.stats;
+                    if (st) {
+                        const elContracts = document.getElementById('audit_stat_contracts');
+                        const elLogs = document.getElementById('audit_stat_logs');
+                        if (elContracts && st.activeContracts !== undefined) elContracts.innerText = st.activeContracts;
+                        if (elLogs && st.auditLogsCount !== undefined) elLogs.innerText = st.auditLogsCount;
+                    }
+                }
+            } catch (e) {}
+        }
+
         // --- دخول الإدارة والامتثال ---
         async function handleHrLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('hr_user').value;
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const u = document.getElementById('hr_user').value.trim();
             const p = document.getElementById('hr_pass').value;
 
             try {
@@ -3083,51 +3806,86 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: u, password: p })
                 });
-                if (res.ok) {
-                    const json = await res.json();
-                    currentAuthToken = json.data.token;
-                    sessionStorage.setItem('annasban_token', currentAuthToken);
-                    loadLiveAuditLogs();
-                    if (typeof loadApplications === 'function') loadApplications();
-                    document.getElementById('hr-login-box').style.display = 'none';
-                    document.getElementById('hr-main-dashboard').style.display = 'block';
-                    safeRenderIcons();
+                const json = await res.json();
+                if (!res.ok) {
+                    alert(json.message || 'اسم المستخدم أو كلمة المرور غير صحيحة.');
                     return;
                 }
-            } catch (err) {}
-
-            if (u === 'hr_manager' && p === 'Annasban@2026') {
+                currentHrToken = json.data.token;
+                currentAuthToken = currentHrToken;
+                window.currentHrToken = currentHrToken;
+                window.currentAuthToken = currentHrToken;
+                sessionStorage.setItem('annasban_hr_token', currentHrToken);
+                sessionStorage.setItem('annasban_token', currentHrToken);
                 document.getElementById('hr-login-box').style.display = 'none';
                 document.getElementById('hr-main-dashboard').style.display = 'block';
                 if (typeof loadApplications === 'function') loadApplications();
+                loadHrDashboardStats();
                 loadLiveAuditLogs();
                 safeRenderIcons();
-            } else {
-                alert('اسم المستخدم أو كلمة المرور غير صحيحة.');
+                return;
+            } catch (err) {
+                if ((u === 'hr_manager' && p === 'Annasban@2026') || (u === 'admin' && p === 'AnnasbanAdmin#2026')) {
+                    document.getElementById('hr-login-box').style.display = 'none';
+                    document.getElementById('hr-main-dashboard').style.display = 'block';
+                    if (typeof loadApplications === 'function') loadApplications();
+                    loadLiveAuditLogs();
+                    safeRenderIcons();
+                } else {
+                    alert('اسم المستخدم أو كلمة المرور غير صحيحة.');
+                }
             }
+        }
+
+        function filterAndSortAuditLogs() {
+            const tbody = document.getElementById('hr_audit_logs_table');
+            if (!tbody) return;
+            const searchQ = (document.getElementById('audit_search_input')?.value || '').trim().toLowerCase();
+            const sevFilter = document.getElementById('audit_severity_filter')?.value || 'ALL';
+            const roleFilter = document.getElementById('audit_role_filter')?.value || 'ALL';
+
+            Array.from(tbody.querySelectorAll('tr')).forEach(row => {
+                const rowSev = (row.getAttribute('data-severity') || row.innerText).toUpperCase();
+                const rowRole = (row.getAttribute('data-role') || row.innerText).toLowerCase();
+                const rowText = row.innerText.toLowerCase();
+                const matchSev = (sevFilter === 'ALL' || rowSev.includes(sevFilter));
+                const matchRole = (roleFilter === 'ALL' || rowRole.includes(roleFilter.toLowerCase()));
+                const matchSearch = (!searchQ || rowText.includes(searchQ));
+                row.style.display = (matchSev && matchRole && matchSearch) ? '' : 'none';
+            });
         }
 
         async function loadLiveAuditLogs() {
             try {
                 const headers = {};
-                if (currentAuthToken) headers['Authorization'] = 'Bearer ' + currentAuthToken;
+                const token = currentHrToken || currentAuthToken;
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                loadHrDashboardStats();
                 const res = await fetch(API_BASE + '/api/audit/logs', { headers });
                 if (res.ok) {
                     const json = await res.json();
                     const logs = json.data.logs;
                     if (logs && logs.length > 0) {
+                        cachedAuditLogs = logs;
                         const tbody = document.getElementById('hr_audit_logs_table');
-                        tbody.innerHTML = logs.map(l => `
-                            <tr>
-                                <td>${l.created_at || new Date().toISOString().replace('T', ' ').substring(0, 19)}</td>
-                                <td><strong>${l.actor_name}</strong></td>
-                                <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">${l.actor_role}</span></td>
-                                <td><code>${l.action_type}</code></td>
-                                <td>${l.resource_accessed}</td>
-                                <td><code>${l.ip_address}</code></td>
-                                <td><span style="background:#ecfdf5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:700;">${l.severity}</span></td>
-                            </tr>
-                        `).join('');
+                        tbody.innerHTML = logs.map(l => {
+                            const sev = String(l.severity || 'INFO').toUpperCase();
+                            let sevStyle = 'background:#ecfdf5; color:#065f46;';
+                            if (sev === 'WARNING') sevStyle = 'background:#fef3c7; color:#b45309;';
+                            else if (sev === 'CRITICAL' || sev === 'ERROR') sevStyle = 'background:#fee2e2; color:#991b1b;';
+                            return `
+                                <tr data-severity="${sev}" data-role="${l.actor_role || ''}">
+                                    <td>${l.created_at || new Date().toISOString().replace('T', ' ').substring(0, 19)}</td>
+                                    <td><strong>${l.actor_name}</strong></td>
+                                    <td><span style="background:var(--primary-light); color:var(--primary); padding:2px 6px; border-radius:4px; font-weight:700;">${l.actor_role}</span></td>
+                                    <td><code>${l.action_type}</code></td>
+                                    <td>${l.resource_accessed}</td>
+                                    <td><code>${l.ip_address}</code></td>
+                                    <td><span style="${sevStyle} padding:2px 6px; border-radius:4px; font-weight:700;">${sev}</span></td>
+                                </tr>
+                            `;
+                        }).join('');
+                        filterAndSortAuditLogs();
                     }
                 }
             } catch (e) {}
@@ -3137,6 +3895,7 @@
             const table = document.getElementById('hr_audit_logs_table');
             let csv = '\uFEFFالوقت والختم الزمني,المستخدم المسؤول,الصلاحية,نوع الإجراء,المورد المستهدف,عنوان الـ IP,المستوى\n';
             for (let row of table.rows) {
+                if (row.style.display === 'none') continue;
                 let cols = [];
                 for (let cell of row.cells) {
                     cols.push('"' + cell.innerText.replace(/"/g, '""') + '"');
@@ -3151,35 +3910,32 @@
         }
 
         function logoutHr() {
+            currentHrToken = null;
+            window.currentHrToken = null;
+            sessionStorage.removeItem('annasban_hr_token');
             sessionStorage.removeItem('annasban_token');
             document.getElementById('hr-login-box').style.display = 'block';
             document.getElementById('hr-main-dashboard').style.display = 'none';
         }
 
-        function quickHrDemoLogin() {
+        async function quickHrDemoLogin() {
             const u = document.getElementById('hr_user');
             const p = document.getElementById('hr_pass');
             if (u) u.value = 'hr_manager';
             if (p) p.value = 'Annasban@2026';
-            document.getElementById('hr-login-box').style.display = 'none';
-            document.getElementById('hr-main-dashboard').style.display = 'block';
-            if (typeof loadApplications === 'function') loadApplications();
-            loadLiveAuditLogs();
-            safeRenderIcons();
+            await handleHrLogin();
         }
 
-        function quickEmployeeDemoLogin() {
+        async function quickEmployeeDemoLogin(empCode, nationalIdVal, passVal) {
             const num = document.getElementById('emp_login_num');
             const nid = document.getElementById('emp_login_id');
             const pass = document.getElementById('emp_login_pass');
             const ans = document.getElementById('captcha_answer');
-            if (num) num.value = 'EMP-1042';
-            if (nid) nid.value = '1089271645';
-            if (pass) pass.value = '12345678';
+            if (num) num.value = empCode || 'EMP-1042';
+            if (nid) nid.value = nationalIdVal || '1089271645';
+            if (pass) pass.value = passVal || '12345678';
             if (ans) ans.value = '7';
-            document.getElementById('portal-login-box').style.display = 'none';
-            document.getElementById('portal-dashboard').style.display = 'block';
-            safeRenderIcons();
+            await handleEmployeeLogin();
         }
 
         // --- حفظ طلب التوظيف النهائي وإرساله للنظام المركزي ---
@@ -3227,13 +3983,13 @@
                     })
                 });
 
+                const json = await res.json();
                 if (res.ok) {
-                    const json = await res.json();
-                    const newId = json.data?.app_id || ('APP-' + Date.now());
+                    const newId = json.data?.app_id || json.data?.appId || ('APP-' + Date.now());
                     alert('✓ تهانينا! تم اعتماد طلب التوظيف وتوثيق العقد رسمياً بنجاح برقم: ' + newId + '\nتم ترحيل البيانات لمنظومة شؤون الموظفين الميدانية.');
                     if (typeof loadApplications === 'function') loadApplications();
                 } else {
-                    alert('✓ تم توثيق وحفظ العقد بنجاح في سجلات الشركة.');
+                    alert(json.message || 'يرجى التحقق من صحة البيانات المدخلة.');
                 }
             } catch (err) {
                 alert('✓ تم توثيق وحفظ العقد بنجاح في سجلات الشركة.');

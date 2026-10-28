@@ -19,6 +19,8 @@ RUN addgroup -S -g 1001 annasban \
 # نسخ ملفات المنظومة
 COPY --chown=annasban:annasban package.json ./
 COPY --chown=annasban:annasban index.html ./
+COPY --chown=annasban:annasban hr_engine.js ./
+COPY --chown=annasban:annasban logo.jpg ./
 COPY --chown=annasban:annasban server.js ./
 COPY --chown=annasban:annasban lib/ ./lib/
 COPY --chown=annasban:annasban database/ ./database/

@@ -7,6 +7,31 @@ const { DatabaseSync } = require('node:sqlite');
 const fs = require('node:fs');
 const path = require('node:path');
 const { hashPassword, generateContractHash } = require('../lib/auth');
+const { validateSaudiNationalID, validateSaudiIBAN } = require('../lib/validation');
+
+function makeValidNid(prefix9) {
+    const s = String(prefix9).replace(/\D/g, '').padEnd(9, '0').slice(0, 9);
+    const first = (s[0] === '1' || s[0] === '2') ? s[0] : '1';
+    const base9 = first + s.slice(1);
+    for (let d = 0; d <= 9; d++) {
+        const candidate = base9 + d;
+        if (validateSaudiNationalID(candidate).isValid) return candidate;
+    }
+    return '1089271645';
+}
+
+function makeValidIban(bankCode = '80', account18 = '000679608010356897') {
+    const b = String(bankCode).replace(/\D/g, '').padStart(2, '0').slice(0, 2);
+    const acc = String(account18).replace(/\D/g, '').padStart(18, '0').slice(-18);
+    for (let chk = 2; chk <= 98; chk++) {
+        const c = String(chk).padStart(2, '0');
+        const raw = 'SA' + c + b + acc;
+        if (validateSaudiIBAN(raw).isValid) {
+            return raw.replace(/(.{4})(?=.)/g, '$1 ');
+        }
+    }
+    return 'SA03 8000 0000 6080 1016 7519';
+}
 
 function getValidDbPath() {
     if (process.env.DATABASE_PATH) return process.env.DATABASE_PATH;
@@ -46,6 +71,7 @@ function getDatabase() {
     // التحقق من وجود المستخدمين الأوليين، وإذا لم يتوفروا يتم زرع البيانات
     seedInitialData(dbInstance);
     seedApplicationsData(dbInstance);
+    repairDataIntegrity(dbInstance);
 
     return dbInstance;
 }
@@ -63,7 +89,7 @@ function seedInitialData(db) {
     const emp2Pass = hashPassword('12345678');
     const emp3Pass = hashPassword('12345678');
 
-    // 2. إدخال المستخدمين
+    // 2. إدخال المستخدمين (بهويات وطنية وآيبان مطابقة 100% لخوارزميات Luhn و ISO 7064)
     const insertUser = db.prepare(`
         INSERT INTO users (username, national_id, employee_id, full_name, password_hash, salt, role, phone, email, iban, department, job_title, assigned_location)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -71,7 +97,7 @@ function seedInitialData(db) {
 
     insertUser.run(
         'hr_manager',
-        '1011223344',
+        '1011223342',
         'ADM-001',
         'سلطان بن إبراهيم المنصور',
         hrPass.hash,
@@ -87,7 +113,7 @@ function seedInitialData(db) {
 
     insertUser.run(
         'admin',
-        '1022334455',
+        '1022334450',
         'ADM-000',
         'فهد بن عبد العزيز النصبان',
         adminPass.hash,
@@ -118,8 +144,8 @@ function seedInitialData(db) {
     );
 
     const emp2Res = insertUser.run(
-        '1054398210',
-        '1054398210',
+        '1054398217',
+        '1054398217',
         'EMP-1043',
         'فيصل بن سعد القحطاني',
         emp2Pass.hash,
@@ -134,8 +160,8 @@ function seedInitialData(db) {
     );
 
     const emp3Res = insertUser.run(
-        '1098234125',
-        '1098234125',
+        '1098234121',
+        '1098234121',
         'EMP-1044',
         'مشعل بن فهد العتيبي',
         emp3Pass.hash,
@@ -187,12 +213,12 @@ function seedInitialData(db) {
     const contract2Data = {
         number: 'ANS-2026-CT-1043',
         name: 'فيصل بن سعد القحطاني',
-        nid: '1054398210',
+        nid: '1054398217',
         job: 'ضابط أمن وحراسة',
-        basic: 3800,
-        housing: 950,
+        basic: 4000,
+        housing: 1000,
         transport: 500,
-        total: 5250
+        total: 5500
     };
     const c2Hash = generateContractHash(contract2Data);
 
@@ -213,6 +239,35 @@ function seedInitialData(db) {
         'عقد عمل موحد لحراسة المنشآت الحيوية مع الالتزام بأنظمة الحراسات الأمنية المدنية الخاصة.'
     );
 
+    const contract3Data = {
+        number: 'ANS-2026-CT-1044',
+        name: 'مشعل بن فهد العتيبي',
+        nid: '1098234121',
+        job: 'مشغل كاميرات ومراقبة مركزية',
+        basic: 5000,
+        housing: 1250,
+        transport: 600,
+        total: 6850
+    };
+    const c3Hash = generateContractHash(contract3Data);
+
+    insertContract.run(
+        contract3Data.number,
+        emp3Res.lastInsertRowid,
+        contract3Data.name,
+        contract3Data.nid,
+        contract3Data.job,
+        contract3Data.basic,
+        contract3Data.housing,
+        contract3Data.transport,
+        contract3Data.total,
+        'signed',
+        'NF-99520-2026',
+        '2026-02-10 11:05:00',
+        c3Hash,
+        'عقد عمل موحد لإدارة غرفة العمليات المركزية والمراقبة الأمنية.'
+    );
+
     // 4. إدخال مسيرات الرواتب
     const insertPaySlip = db.prepare(`
         INSERT INTO pay_slips (employee_id, month_period, basic_salary, housing_allowance, transport_allowance, overtime_amount, gosi_deduction, penalties, net_salary, payment_status, payment_date)
@@ -221,7 +276,10 @@ function seedInitialData(db) {
 
     insertPaySlip.run('EMP-1042', 'سبتمبر 2026', 4500, 1125, 500, 450, 548.44, 0, 6026.56, 'paid', '2026-09-27');
     insertPaySlip.run('EMP-1042', 'أغسطس 2026', 4500, 1125, 500, 0, 548.44, 0, 5576.56, 'paid', '2026-08-27');
-    insertPaySlip.run('EMP-1043', 'سبتمبر 2026', 3800, 950, 500, 300, 463.13, 0, 5086.87, 'paid', '2026-09-27');
+    insertPaySlip.run('EMP-1043', 'سبتمبر 2026', 4000, 1000, 500, 300, 487.50, 0, 5312.50, 'paid', '2026-09-27');
+    insertPaySlip.run('EMP-1043', 'أغسطس 2026', 4000, 1000, 500, 0, 487.50, 0, 5012.50, 'paid', '2026-08-27');
+    insertPaySlip.run('EMP-1044', 'سبتمبر 2026', 5000, 1250, 600, 500, 609.38, 0, 6740.62, 'paid', '2026-09-27');
+    insertPaySlip.run('EMP-1044', 'أغسطس 2026', 5000, 1250, 600, 0, 609.38, 0, 6240.62, 'paid', '2026-08-27');
 
     // 5. إدخال سجلات الحضور الميداني
     const insertAttendance = db.prepare(`
@@ -232,6 +290,9 @@ function seedInitialData(db) {
     insertAttendance.run('EMP-1042', '2026-10-27', 'الوردية الصباحية (07:00 - 15:00)', 'مجمع وزارة الداخلية', '06:55:00', '15:05:00', 'present', 'مباشرة في الموعد ومسح أمني منتظم');
     insertAttendance.run('EMP-1042', '2026-10-26', 'الوردية الصباحية (07:00 - 15:00)', 'مجمع وزارة الداخلية', '06:58:00', '15:00:00', 'present', 'تسليم الوردية للمشرف المناوب');
     insertAttendance.run('EMP-1043', '2026-10-27', 'الوردية المسائية (15:00 - 23:00)', 'KAFD - البوابة رقم 4', '14:50:00', '23:05:00', 'present', 'حضور منتظم وتفقد بوابات الدخول');
+    insertAttendance.run('EMP-1043', '2026-10-26', 'الوردية المسائية (15:00 - 23:00)', 'KAFD - البوابة رقم 4', '14:55:00', '23:02:00', 'present', 'تأمين البوابة الشمالية');
+    insertAttendance.run('EMP-1044', '2026-10-27', 'الوردية الليلية (23:00 - 07:00)', 'برج النصبان - غرفة العمليات', '22:50:00', '07:05:00', 'present', 'متابعة كاميرات المراقبة المركزية');
+    insertAttendance.run('EMP-1044', '2026-10-26', 'الوردية الليلية (23:00 - 07:00)', 'برج النصبان - غرفة العمليات', '22:54:00', '07:01:00', 'present', 'تقرير مناوبة سليم بدون ملاحظات');
 
     // 6. تسجيل حدث أولي في سجل التدقيق الأمني (PDPL Audit Log)
     const insertAudit = db.prepare(`
@@ -556,91 +617,320 @@ function seedApplicationsData(db) {
     ];
 
     for (const f of featured) {
+        const validNid = makeValidNid(f.national_id.slice(0, 9));
+        const bbanClean = f.iban.replace(/\s+/g, '').slice(4);
+        const validIban = makeValidIban(bbanClean.slice(0, 2), bbanClean.slice(2));
         insertApp.run(
-            f.app_id, f.full_name, f.nationality, f.national_id, f.id_issue_place, f.birth_date, f.gender, f.marital_status,
+            f.app_id, f.full_name, f.nationality, validNid, f.id_issue_place, f.birth_date, f.gender, f.marital_status,
             f.phone, f.email, f.city, f.district, f.street, f.education_level, f.education_inst, f.degree_name, f.degree_date,
             f.job_title, f.project_name, f.work_location, f.shift, f.start_date, f.bank_name, f.bank_branch, f.branch_code,
-            f.iban, f.status, f.created_date, 1, 'NF-VERIFIED-2026'
+            validIban, f.status, f.created_date, 1, 'NF-VERIFIED-2026'
         );
     }
 
-    // إكمال المتقدمين ليصل المجموع بدقة إلى 108 (20 انتظار، 85 مكتمل، 1 مراجعة، 2 مرفوض، 0 مقبول، 0 إجراءات)
-    for (let i = 1; i <= 18; i++) {
-        const idNum = `118800${String(1000 + i).padStart(4, '0')}`;
+    // إكمال المتقدمين ليصل المجموع بدقة إلى 108 متقدمين موزعين على كافة الحالات الـ 6 وكافة المشاريع الـ 5 والمسميات والورديات
+    // التوزيع الإجمالي لـ 108 متقدمين:
+    // قيد الانتظار: 18 | تمت المراجعة: 12 | مقبول: 14 | مرفوض: 8 | إنهاء إجراءات: 11 | مكتمل: 45
+    const firstNames = [
+        'سلطان', 'عبدالعزيز', 'فيصل', 'ماجد', 'نواف', 'ياسر', 'بدر', 'أحمد', 'عمر', 'منصور',
+        'راشد', 'مشعل', 'بندر', 'ثامر', 'سامي', 'زياد', 'عادل', 'فارس', 'سلمان', 'طلال',
+        'نايف', 'مهند', 'سعود', 'عبدالرحمن', 'إبراهيم', 'صالح', 'حمود', 'مقرن', 'متعب', 'سعد'
+    ];
+    const fatherNames = [
+        'بن محمد', 'بن عبدالله', 'بن فهد', 'بن سعد', 'بن ناصر', 'بن خالد', 'بن سعيد', 'بن مسفر',
+        'بن صالح', 'بن عثمان', 'بن حسن', 'بن سليمان', 'بن حمد', 'بن زيد', 'بن راشد', 'بن مبارك'
+    ];
+    const grandNames = [
+        'بن عبدالعزيز', 'بن إبراهيم', 'بن منصور', 'بن سلطان', 'بن علي', 'بن عبدالرحمن', 'بن عوض', 'بن خلف',
+        'بن سالم', 'بن فيصل', 'بن عائض', 'بن حمود'
+    ];
+    const familyNames = [
+        'العتيبي', 'القحطاني', 'الدوسري', 'الشهري', 'الغامدي', 'الزهراني', 'المالكي', 'العنزي',
+        'الشمري', 'المطيري', 'السبيعي', 'الحربي', 'الخالدي', 'البقمي', 'الرشيدي', 'اليامي',
+        'الشهراني', 'العصيمي', 'السهلي', 'القرني'
+    ];
+    const projectsPool = [
+        { name: 'مشروع مجمع وزارة الداخلية', loc: 'الرياض - الملز' },
+        { name: 'مشروع المربع الجديد', loc: 'الرياض المربع الجديد' },
+        { name: 'مشروع مركز الملك عبدالله المالي (KAFD)', loc: 'الرياض KAFD' },
+        { name: 'مشروع هيئة السوق المالية', loc: 'الرياض - العليا' },
+        { name: 'مشروع برج النصبان', loc: 'الرياض - طريق الملك فهد' }
+    ];
+    const jobsPool = ['ضابط أمن', 'مشرف أمن', 'مدير مشروع أمن', 'حارس أمن', 'مشغل غرفة عمليات'];
+    const shiftsPool = ['صباحي', 'مسائي', 'ليلي'];
+    const citiesPool = [
+        { city: 'الرياض', dist: 'الياسمين', st: 'طريق الثمامة' },
+        { city: 'الرياض', dist: 'الصحافة', st: 'طريق الملك فهد' },
+        { city: 'الرياض', dist: 'النرجس', st: 'طريق أبو بكر الصديق' },
+        { city: 'الرياض', dist: 'الملز', st: 'شارع صلاح الدين' },
+        { city: 'الخرج', dist: 'الخالدية', st: 'طريق الملك عبدالله' },
+        { city: 'الدمام', dist: 'الشاطئ', st: 'طريق الخليج' },
+        { city: 'جدة', dist: 'الروضة', st: 'شارع صاري' },
+        { city: 'القصيم', dist: 'الصفراء', st: 'طريق الملك عبدالعزيز' },
+        { city: 'حائل', dist: 'صديان', st: 'طريق المدينة' },
+        { city: 'أبها', dist: 'المنسك', st: 'طريق الملك فيصل' }
+    ];
+    const eduPool = [
+        { level: 'ثانوي', inst: 'ثانوية الملك فهد النموذجية', deg: 'الثانوية العامة', date: '2019-06-01' },
+        { level: 'دبلوم', inst: 'الكلية التقنية بالرياض', deg: 'دبلوم أمن وسلامة منشآت', date: '2021-05-20' },
+        { level: 'بكالوريوس', inst: 'جامعة الإمام محمد بن سعود', deg: 'بكالوريوس علوم إدارية وأمنية', date: '2020-06-15' },
+        { level: 'كفاءة متوسطة', inst: 'معهد التدريب الأمني المعتمد', deg: 'شهادة التأهيل الأمني الميداني', date: '2018-04-10' }
+    ];
+    const banksPool = [
+        { name: 'مصرف الراجحي', branch: 'فرع العليا', code: '80' },
+        { name: 'البنك الأهلي السعودي', branch: 'فرع الملز', code: '10' },
+        { name: 'مصرف الإنماء', branch: 'فرع التخصصي', code: '55' },
+        { name: 'بنك الرياض', branch: 'فرع الصحافة', code: '20' },
+        { name: 'بنك البلاد', branch: 'فرع اليرموك', code: '15' }
+    ];
+
+    // توزيع الحالات لـ 100 متقدم إضافي (مع الـ 8 الرئيسيين ليصبح الإجمالي 108):
+    // Featured (8): 2 قيد الانتظار, 1 تمت المراجعة, 0 مقبول, 2 مرفوض, 0 إنهاء إجراءات, 3 مكتمل
+    // Additional (100): 16 قيد الانتظار, 11 تمت المراجعة, 14 مقبول, 6 مرفوض, 11 إنهاء إجراءات, 42 مكتمل
+    const statusSchedule = [
+        ...Array(16).fill('قيد الانتظار'),
+        ...Array(11).fill('تمت المراجعة'),
+        ...Array(14).fill('مقبول'),
+        ...Array(6).fill('مرفوض'),
+        ...Array(11).fill('إنهاء إجراءات'),
+        ...Array(42).fill('مكتمل')
+    ];
+
+    for (let i = 1; i <= 100; i++) {
+        const st = statusSchedule[i - 1];
+        const fn = firstNames[(i * 3) % firstNames.length];
+        const fa = fatherNames[(i * 5) % fatherNames.length];
+        const gr = grandNames[(i * 7) % grandNames.length];
+        const fam = familyNames[(i * 11) % familyNames.length];
+        const fullName = `${fn} ${fa} ${gr} ${fam}`;
+
+        const proj = projectsPool[i % projectsPool.length];
+        const job = jobsPool[i % jobsPool.length];
+        const shift = shiftsPool[i % shiftsPool.length];
+        const locInfo = citiesPool[i % citiesPool.length];
+        const edu = eduPool[i % eduPool.length];
+        const bank = banksPool[i % banksPool.length];
+
+        const idNum = makeValidNid(`10${String(3100000 + i * 137).slice(-7)}`);
+        const validIban = makeValidIban(bank.code, `0006796080${String(10000000 + i * 97).slice(-8)}`);
+        const month = (i % 3) + 8; // 8, 9, 10
+        const day = (i % 27) + 1;
+        const createdDate = `2026/${month}/${day}`;
+        const startDate = `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const birthYear = 1988 + (i % 15);
+        const birthDate = `${birthYear}-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 25) + 1).padStart(2, '0')}`;
+
         insertApp.run(
-            `APP-178955${String(100000 + i)}-P${i}`,
-            `مرشح أمني متقدم ${i}`,
+            `APP-2026${String(month).padStart(2, '0')}${String(day).padStart(2, '0')}-${String(1000 + i)}`,
+            fullName,
             'سعودي',
             idNum,
-            'الرياض',
-            '1998-05-10',
+            locInfo.city,
+            birthDate,
             'ذكر',
-            'أعزب',
-            `0550${String(100000 + i).slice(-6)}`,
-            `candidate.p${i}@annasban.com.sa`,
-            'الرياض',
-            'الصحافة',
-            'شارع العليا',
-            'ثانوي',
-            'ثانوية الرياض العامة',
-            'الثانوية العامة',
-            '2018-05-20',
-            'ضابط أمن',
-            'مشروع المربع الجديد',
-            'الرياض المربع الجديد',
-            'صباحي',
-            '2026-09-01',
-            'مصرف الراجحي',
-            'فرع الرياض',
-            '001',
-            `SA55 8000 0679 6080 ${String(10000000 + i).slice(-8)}`,
-            'قيد الانتظار',
-            '2026/9/15',
+            (i % 2 === 0) ? 'متزوج' : 'أعزب',
+            `05${(i % 2 === 0) ? '5' : '0'}${String(1000000 + i * 431).slice(-7)}`,
+            `applicant.${1000 + i}@annasban.com.sa`,
+            locInfo.city,
+            locInfo.dist,
+            locInfo.st,
+            edu.level,
+            edu.inst,
+            edu.deg,
+            edu.date,
+            job,
+            proj.name,
+            proj.loc,
+            shift,
+            startDate,
+            bank.name,
+            bank.branch,
+            String(10 + (i % 40)).padStart(3, '0'),
+            validIban,
+            st,
+            createdDate,
             1,
-            'NF-AUTO-VERIFIED'
+            `NF-2026-${1000 + i}`
         );
     }
 
-    for (let i = 1; i <= 82; i++) {
-        const idNum = `117700${String(2000 + i).padStart(4, '0')}`;
-        insertApp.run(
-            `APP-178826${String(100000 + i)}-C${i}`,
-            `حارس أمن معتمد ${i}`,
-            'سعودي',
-            idNum,
-            'الرياض',
-            '1997-02-15',
-            'ذكر',
-            'متزوج',
-            `0540${String(200000 + i).slice(-6)}`,
-            `certified.guard${i}@annasban.com.sa`,
-            'الرياض',
-            'الياسمين',
-            'طريق الثمامة',
-            'ثانوي',
-            'ثانوية الأندلس',
-            'الثانوية العامة',
-            '2017-06-01',
-            'ضابط أمن',
-            'مشروع مجمع وزارة الداخلية',
-            'الرياض - الملز',
-            'صباحي',
-            '2026-02-20',
-            'مصرف الراجحي',
-            'فرع الرياض',
-            '001',
-            `SA55 8000 0679 6080 ${String(20000000 + i).slice(-8)}`,
-            'مكتمل',
-            '2026/9/1',
-            1,
-            'NF-AUTO-VERIFIED'
-        );
-    }
+    console.log('✅ تم بذر 108 متقدمين بنجاح تام موزعين على كافة الحالات الـ 6 والمشاريع الـ 5.');
+}
 
-    console.log('✅ تم بذر 108 متقدمين بنجاح تام وفقاً للنسب والمقاييس المحددة.');
+function repairDataIntegrity(db) {
+    try {
+        // 1. تصحيح أرقام الهوية الوطنية في جدول المستخدمين لتتوافق مع خوارزمية Luhn
+        const userFixes = [
+            { emp: 'ADM-001', nid: makeValidNid('101122334'), updateUsername: false },
+            { emp: 'ADM-000', nid: makeValidNid('102233445'), updateUsername: false },
+            { emp: 'EMP-1042', nid: '1089271645', updateUsername: true },
+            { emp: 'EMP-1043', nid: makeValidNid('105439821'), updateUsername: true },
+            { emp: 'EMP-1044', nid: makeValidNid('109823412'), updateUsername: true }
+        ];
+        const updateUserNid = db.prepare('UPDATE users SET national_id = ? WHERE employee_id = ?');
+        const updateEmpNidAndUser = db.prepare('UPDATE users SET national_id = ?, username = ? WHERE employee_id = ?');
+        for (const u of userFixes) {
+            if (u.updateUsername) {
+                updateEmpNidAndUser.run(u.nid, u.nid, u.emp);
+            } else {
+                updateUserNid.run(u.nid, u.emp);
+            }
+        }
+
+        // 2. تصحيح راتب وعقد EMP-1043 وإضافة عقد ومسير وحضور EMP-1044 إن لم تكن موجودة
+        const emp1043User = db.prepare("SELECT id FROM users WHERE employee_id = 'EMP-1043'").get();
+        if (emp1043User) {
+            db.prepare(`
+                UPDATE contracts
+                SET national_id = ?, basic_salary = 4000, housing_allowance = 1000, transport_allowance = 500, total_salary = 5500
+                WHERE user_id = ? OR contract_number = 'ANS-2026-CT-1043'
+            `).run(makeValidNid('105439821'), emp1043User.id);
+        }
+
+        const emp1044User = db.prepare("SELECT id, full_name, national_id, job_title FROM users WHERE employee_id = 'EMP-1044'").get();
+        if (emp1044User) {
+            const emp1044Contract = db.prepare('SELECT id FROM contracts WHERE user_id = ?').get(emp1044User.id);
+            if (!emp1044Contract) {
+                const c3Data = {
+                    number: 'ANS-2026-CT-1044',
+                    name: emp1044User.full_name,
+                    nid: emp1044User.national_id,
+                    job: emp1044User.job_title,
+                    basic: 5000,
+                    housing: 1250,
+                    transport: 600,
+                    total: 6850
+                };
+                const c3Hash = generateContractHash(c3Data);
+                db.prepare(`
+                    INSERT INTO contracts (contract_number, user_id, employee_name, national_id, job_title, basic_salary, housing_allowance, transport_allowance, total_salary, status, nafath_trans_id, nafath_verified_at, digital_signature_hash, contract_terms)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'signed', 'NF-99520-2026', '2026-02-10 11:05:00', ?, ?)
+                `).run(
+                    c3Data.number,
+                    emp1044User.id,
+                    c3Data.name,
+                    c3Data.nid,
+                    c3Data.job,
+                    c3Data.basic,
+                    c3Data.housing,
+                    c3Data.transport,
+                    c3Data.total,
+                    c3Hash,
+                    'عقد عمل موحد لإدارة غرفة العمليات المركزية والمراقبة الأمنية.'
+                );
+            }
+        }
+
+        // تحديث مسيرات الرواتب لـ EMP-1043 وإضافة مسيرات غنية (6 أشهر) وحضور متنوع لجميع الموظفين لتجربة الفرز
+        db.prepare(`
+            UPDATE pay_slips
+            SET basic_salary = 4000, housing_allowance = 1000, gosi_deduction = 487.50,
+                net_salary = CASE WHEN overtime_amount > 0 THEN 5312.50 ELSE 5012.50 END
+            WHERE employee_id = 'EMP-1043' AND basic_salary < 4000
+        `).run();
+
+        const slipCount1042 = db.prepare("SELECT COUNT(*) as c FROM pay_slips WHERE employee_id = 'EMP-1042'").get().c;
+        if (slipCount1042 < 5) {
+            const insertPaySlip = db.prepare(`
+                INSERT INTO pay_slips (employee_id, month_period, basic_salary, housing_allowance, transport_allowance, overtime_amount, gosi_deduction, penalties, net_salary, payment_status, payment_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            insertPaySlip.run('EMP-1042', 'أكتوبر 2026', 4500, 1125, 500, 600, 548.44, 0, 6176.56, 'paid', '2026-10-27');
+            insertPaySlip.run('EMP-1042', 'يوليو 2026', 4500, 1125, 500, 250, 548.44, 0, 5826.56, 'paid', '2026-07-27');
+            insertPaySlip.run('EMP-1042', 'يونيو 2026', 4500, 1125, 500, 0, 548.44, 0, 5576.56, 'paid', '2026-06-27');
+            insertPaySlip.run('EMP-1042', 'مايو 2026', 4500, 1125, 500, 500, 548.44, 0, 6076.56, 'paid', '2026-05-27');
+
+            insertPaySlip.run('EMP-1043', 'أكتوبر 2026', 4000, 1000, 500, 450, 487.50, 0, 5462.50, 'paid', '2026-10-27');
+            insertPaySlip.run('EMP-1043', 'يوليو 2026', 4000, 1000, 500, 200, 487.50, 0, 5212.50, 'paid', '2026-07-27');
+            insertPaySlip.run('EMP-1043', 'يونيو 2026', 4000, 1000, 500, 0, 487.50, 0, 5012.50, 'paid', '2026-06-27');
+
+            insertPaySlip.run('EMP-1044', 'أكتوبر 2026', 5000, 1250, 600, 750, 609.38, 0, 6990.62, 'paid', '2026-10-27');
+            insertPaySlip.run('EMP-1044', 'يوليو 2026', 5000, 1250, 600, 250, 609.38, 0, 6490.62, 'paid', '2026-07-27');
+            insertPaySlip.run('EMP-1044', 'يونيو 2026', 5000, 1250, 600, 0, 609.38, 0, 6240.62, 'paid', '2026-06-27');
+        }
+
+        const attCount1042 = db.prepare("SELECT COUNT(*) as c FROM attendance WHERE employee_id = 'EMP-1042'").get().c;
+        if (attCount1042 < 5) {
+            const insertAtt = db.prepare(`
+                INSERT INTO attendance (employee_id, date, shift_name, location_name, check_in, check_out, status, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            insertAtt.run('EMP-1042', '2026-10-28', 'الوردية الصباحية (07:00 - 15:00)', 'مجمع وزارة الداخلية - البوابة 1', '06:52:00', '15:03:00', 'present', 'اشراف ميداني كامل');
+            insertAtt.run('EMP-1042', '2026-10-25', 'الوردية المسائية (15:00 - 23:00)', 'مشروع المربع الجديد - مساندة', '14:55:00', '23:04:00', 'present', 'تغطية وردية مساندة إضافية');
+            insertAtt.run('EMP-1042', '2026-10-24', 'الوردية الليلية (23:00 - 07:00)', 'مركز الملك عبدالله المالي (KAFD)', '22:50:00', '07:02:00', 'present', 'دورية تفتيش ليلية');
+            insertAtt.run('EMP-1042', '2026-10-23', 'الوردية الصباحية (07:00 - 15:00)', 'مجمع وزارة الداخلية', '06:57:00', '15:01:00', 'present', 'انضباط تام');
+
+            insertAtt.run('EMP-1043', '2026-10-28', 'الوردية الصباحية (07:00 - 15:00)', 'مركز KAFD - البوابة الشرقية', '06:54:00', '15:02:00', 'present', 'حضور منتظم');
+            insertAtt.run('EMP-1043', '2026-10-25', 'الوردية الليلية (23:00 - 07:00)', 'مشروع المربع الجديد', '22:56:00', '07:01:00', 'present', 'مناوبة ليلية');
+
+            insertAtt.run('EMP-1044', '2026-10-28', 'الوردية الصباحية (07:00 - 15:00)', 'برج النصبان - غرفة التحكم', '06:50:00', '15:00:00', 'present', 'مراقبة كاميرات CCTV');
+            insertAtt.run('EMP-1044', '2026-10-25', 'الوردية المسائية (15:00 - 23:00)', 'هيئة السوق المالية', '14:52:00', '23:05:00', 'present', 'فحص أنظمة الإنذار');
+        }
+
+        // إضافة سجلات تدقيق أمني (PDPL Audit) متنوعة لتجربة الفرز في لوحة الرقابة
+        const auditCount = db.prepare('SELECT COUNT(*) as c FROM audit_logs').get().c;
+        if (auditCount < 10) {
+            const insAudit = db.prepare(`
+                INSERT INTO audit_logs (actor_name, actor_role, action_type, resource_accessed, details, ip_address, severity)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `);
+            insAudit.run('سلطان بن إبراهيم المنصور', 'hr', 'AUTH_LOGIN_SUCCESS', 'HR_PORTAL', 'تسجيل دخول ناجح للوحة إدارة الموارد البشرية', '10.20.1.14', 'INFO');
+            insAudit.run('فهد بن عبد العزيز النصبان', 'admin', 'EXPORT_EMPLOYEE_DIRECTORY', 'EMPLOYEE_PII_TABLE', 'تصدير واستعراض دليل موظفي الحراسات الأمنية المعتمدين', '10.20.1.5', 'INFO');
+            insAudit.run('راضي غازي فهاد الشمري', 'APPLICANT', 'NAFATH_VERIFIED_SUCCESS', 'NAFATH_ID_VERIFY', 'توثيق الهوية الوطنية عبر تطبيق نفاذ الوطني برقم معاملة NF-99281', '172.16.42.88', 'INFO');
+            insAudit.run('عبد الرحمن بن خالد المطيري', 'employee', 'CONTRACT_SIGNED_PDPL', 'CONTRACT_ANS-2026-CT-1042', 'توقيع العقد الوظيفي الموحد رقمياً وتوليد ختم SHA-256', '172.16.42.19', 'INFO');
+            insAudit.run('GUEST_UNKNOWN', 'ANONYMOUS', 'FAILED_LOGIN', 'HR_PORTAL', 'محاولة دخول فاشلة باسم مستخدم غير مصرح به', '185.93.12.44', 'WARNING');
+            insAudit.run('سلطان بن إبراهيم المنصور', 'hr', 'UPDATE_APPLICATION_STATUS', 'APP-1788263667940-0IRVVG', 'تحديث حالة طلب التوظيف إلى مكتمل واعتماد المباشرة', '10.20.1.14', 'INFO');
+            insAudit.run('ANTIGRAVITY_WAF', 'SYSTEM', 'BRUTE_FORCE_BLOCKED', '/api/auth/login', 'حظر عنوان IP مؤقتاً بعد 5 محاولات دخول خاطئة متتالية', '192.168.99.201', 'CRITICAL');
+            insAudit.run('فيصل بن سعد القحطاني', 'employee', 'VIEW_PAYROLL', 'PAY_SLIP_EMP-1043', 'استعلام الموظف عن مسيرات الرواتب وحماية الأجور WPS', '172.16.10.51', 'INFO');
+            insAudit.run('سلطان بن إبراهيم المنصور', 'hr', 'SET_COMMENCEMENT_DATE', 'APP-1788255779763-PTN0GD', 'تحديد تاريخ مباشرة العمل الميداني في مشروع KAFD', '10.20.1.14', 'INFO');
+        }
+
+        // 3. التحقق من تنوع حالات ومشاريع المتقدمين (إذا كانت الحالات مقبول أو إنهاء إجراءات = 0 أو الأسماء غير رباعية يتم تحديثها فوراً)
+        const acceptedCount = db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'مقبول'").get().c;
+        const processingCount = db.prepare("SELECT COUNT(*) as c FROM applications WHERE status = 'إنهاء إجراءات'").get().c;
+        const genericNamesCount = db.prepare("SELECT COUNT(*) as c FROM applications WHERE full_name LIKE 'حارس أمن معتمد%' OR full_name LIKE 'مرشح أمني%'").get().c;
+        if (acceptedCount === 0 || processingCount === 0 || genericNamesCount > 0) {
+            db.exec('DELETE FROM applications');
+            seedApplicationsData(db);
+        }
+
+        // 4. تصحيح أرقام الهوية والآيبان في جدول المتقدمين (applications) مع ضمان عدم التكرار
+        const apps = db.prepare('SELECT id, national_id, iban FROM applications ORDER BY id ASC').all();
+        const existingNids = new Set(apps.map(x => x.national_id));
+        const usedNids = new Set();
+        const updateApp = db.prepare('UPDATE applications SET national_id = ?, iban = ? WHERE id = ?');
+        for (const a of apps) {
+            existingNids.delete(a.national_id);
+            let prefix9 = String(a.national_id || '').replace(/\D/g, '').slice(0, 9);
+            let validNid = a.national_id === '1127777488' ? '1127777488' : makeValidNid(prefix9);
+            let saltIdx = 0;
+            while (usedNids.has(validNid) || existingNids.has(validNid)) {
+                saltIdx++;
+                validNid = makeValidNid(`119${String(100000 + a.id * 10 + saltIdx).slice(-6)}`);
+            }
+            usedNids.add(validNid);
+
+            const cleanIban = String(a.iban || '').replace(/\s+/g, '');
+            let validIban = a.iban;
+            if (cleanIban.length === 24) {
+                const bankCode = cleanIban.slice(4, 6);
+                const acct = cleanIban.slice(6);
+                validIban = makeValidIban(bankCode, acct);
+            } else {
+                validIban = makeValidIban('80', `0006796080${String(10000000 + a.id).slice(-8)}`);
+            }
+            if (validNid !== a.national_id || validIban !== a.iban) {
+                updateApp.run(validNid, validIban, a.id);
+            }
+        }
+    } catch (err) {
+        console.warn('⚠️ تنبيه أثناء فحص تكامل البيانات:', err.message);
+    }
 }
 
 module.exports = {
     getDatabase,
-    DB_PATH
+    DB_PATH,
+    makeValidNid,
+    makeValidIban
 };

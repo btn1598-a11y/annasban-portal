@@ -6,7 +6,12 @@
 let applicationsCache = [];
 let activeStatusFilter = 'الكل';
 let activeProjectFilter = 'الكل';
-const HR_API_BASE = (typeof API_BASE !== 'undefined') ? API_BASE : ((typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000');
+let activeJobFilter = 'الكل';
+let activeShiftFilter = 'الكل';
+let activeSortOrder = 'newest';
+const HR_API_BASE = (typeof window !== 'undefined' && window.API_BASE !== undefined) 
+    ? window.API_BASE 
+    : ((typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000');
 
 function safeHrRenderIcons() {
     try {
@@ -29,6 +34,50 @@ function getLogoSrc() {
     return (img && img.src) ? img.src : 'logo.jpg';
 }
 
+function getHrAuthHeaders(includeJson = false) {
+    const headers = {};
+    if (includeJson) headers['Content-Type'] = 'application/json';
+    try {
+        const token = (typeof window !== 'undefined' && window.currentHrToken)
+            || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('annasban_hr_token'))
+            || (typeof window !== 'undefined' && window.currentAuthToken)
+            || (typeof currentAuthToken !== 'undefined' && currentAuthToken)
+            || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('annasban_token'));
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+    } catch (e) {}
+    return headers;
+}
+
+function makeClientValidNid(prefix9) {
+    const str = String(prefix9).replace(/\D/g, '').padEnd(9, '0').slice(0, 9);
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+        let digit = parseInt(str[i], 10);
+        if (i % 2 === 0) {
+            digit *= 2;
+            if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+    }
+    const check = (10 - (sum % 10)) % 10;
+    return str + check;
+}
+
+function makeClientValidIban(bankCode2, account18) {
+    const bban = String(bankCode2).replace(/\D/g, '').padStart(2, '0').slice(0, 2)
+        + String(account18).replace(/\D/g, '').padStart(18, '0').slice(-18);
+    const rearranged = bban + '281000';
+    let rem = 0n;
+    for (let i = 0; i < rearranged.length; i++) {
+        rem = (rem * 10n + BigInt(rearranged[i])) % 97n;
+    }
+    const checkDigits = String(98n - rem).padStart(2, '0');
+    const full = `SA${checkDigits}${bban}`;
+    return full.replace(/(.{4})/g, '$1 ').trim();
+}
+
 let fallbackAppsCache = null;
 
 function getMockApplications() {
@@ -40,7 +89,7 @@ function getMockApplications() {
         {
             id: 1,
             app_id: 'APP-1789559996878-SJRTB9',
-            full_name: 'عبدالله',
+            full_name: 'عبدالله بن محمد بن فهد السبيعي',
             nationality: 'سعودي',
             national_id: '1099887766',
             id_issue_place: 'الرياض',
@@ -51,7 +100,7 @@ function getMockApplications() {
             email: 'abdullah.subaie@gmail.com',
             city: 'الرياض',
             district: 'النرجس',
-            street: 'طريق الأمير فيصل',
+            street: 'طريق الأمير فيصل بن بندر',
             education_level: 'دبلوم',
             education_inst: 'الكلية التقنية بالرياض',
             degree_name: 'دبلوم إدارة أمن وسلامة',
@@ -66,12 +115,12 @@ function getMockApplications() {
             branch_code: '012',
             iban: 'SA44 1000 0001 2345 6789 0123',
             status: 'قيد الانتظار',
-            created_date: '2026/9/16'
+            created_date: '2026/09/16'
         },
         {
             id: 2,
             app_id: 'APP-1788285838920-BCU3HJ',
-            full_name: 'عبدالرحيم امين بخش سلطان',
+            full_name: 'عبدالرحيم بن أمين بن بخش سلطان',
             nationality: 'سعودي',
             national_id: '1088776655',
             id_issue_place: 'مكة المكرمة',
@@ -97,7 +146,7 @@ function getMockApplications() {
             branch_code: '001',
             iban: 'SA03 8000 0123 6080 1016 7519',
             status: 'قيد الانتظار',
-            created_date: '2026/9/1'
+            created_date: '2026/09/15'
         },
         {
             id: 3,
@@ -113,7 +162,7 @@ function getMockApplications() {
             email: 'radhi.alshammari@gmail.com',
             city: 'القاعد',
             district: 'عثمر القديم',
-            street: 'الر',
+            street: 'طريق الملك فهد',
             education_level: 'ثانوي',
             education_inst: 'ثانوية قتيبه',
             degree_name: 'الثانوية العامة',
@@ -123,17 +172,17 @@ function getMockApplications() {
             work_location: 'الرياض المربع الجديد',
             shift: 'صباحي',
             start_date: '2026-02-20',
-            bank_name: 'بنك الراجحي',
+            bank_name: 'مصرف الراجحي',
             bank_branch: 'فرع الرياض',
             branch_code: '001',
             iban: 'SA55 8000 0679 6080 1035 6897',
-            status: 'قيد الانتظار',
-            created_date: '2026/9/1'
+            status: 'مكتمل',
+            created_date: '2026/09/14'
         },
         {
             id: 4,
             app_id: 'APP-1788255779763-PTN0GD',
-            full_name: 'وليد ميز خضر العقيدي',
+            full_name: 'وليد بن ميز بن خضر العقيدي',
             nationality: 'سعودي',
             national_id: '1077665544',
             id_issue_place: 'الجوف',
@@ -149,7 +198,7 @@ function getMockApplications() {
             education_inst: 'معهد الإدارة العامة',
             degree_name: 'دبلوم حراسات أمنية',
             degree_date: '2019-07-01',
-            job_title: 'مشرف أمن',
+            job_title: 'مدير مشروع أمن',
             project_name: 'مشروع مركز الملك عبدالله المالي (KAFD)',
             work_location: 'الرياض KAFD',
             shift: 'ليلي',
@@ -158,13 +207,13 @@ function getMockApplications() {
             bank_branch: 'فرع المروج',
             branch_code: '025',
             iban: 'SA22 2000 0000 1234 5678 9012',
-            status: 'قيد الانتظار',
-            created_date: '2026/9/1'
+            status: 'مكتمل',
+            created_date: '2026/09/13'
         },
         {
             id: 5,
             app_id: 'APP-1788251613500-9YN063',
-            full_name: 'شباب خلف ديلم الشاهر الشمري',
+            full_name: 'شباب بن خلف بن ديلم الشمري',
             nationality: 'سعودي',
             national_id: '1066554433',
             id_issue_place: 'رفحاء',
@@ -189,181 +238,149 @@ function getMockApplications() {
             bank_branch: 'فرع التخصصي',
             branch_code: '030',
             iban: 'SA66 5500 0000 1122 3344 5566',
-            status: 'قيد الانتظار',
-            created_date: '2026/9/1'
+            status: 'مكتمل',
+            created_date: '2026/09/12'
         }
     ];
 
-    for (let i = 6; i <= 20; i++) {
-        apps.push({
-            id: i,
-            app_id: `APP-178825${String(1000000 + i * 791)}`,
-            full_name: `مرشح أمني مسجل ${i}`,
-            nationality: 'سعودي',
-            national_id: `10892${String(10000 + i)}`,
-            id_issue_place: 'الرياض',
-            birth_date: '1998-02-10',
-            gender: 'ذكر',
-            marital_status: 'أعزب',
-            phone: `05512${String(10000 + i)}`,
-            email: `candidate${i}@annasban.com`,
-            city: 'الرياض',
-            district: 'الملز',
-            street: 'طريق صلاح الدين',
-            education_level: 'ثانوي',
-            education_inst: 'وزارة التعليم',
-            degree_name: 'الثانوية',
-            degree_date: '2019-06-01',
-            job_title: (i % 3 === 0) ? 'مشرف أمن' : 'ضابط أمن',
-            project_name: (i % 2 === 0) ? 'مشروع مجمع وزارة الداخلية' : 'مشروع المربع الجديد',
-            work_location: 'الرياض',
-            shift: (i % 2 === 0) ? 'صباحي' : 'مسائي',
-            start_date: '2026-02-20',
-            bank_name: 'مصرف الراجحي',
-            bank_branch: 'فرع الرياض',
-            branch_code: '001',
-            iban: `SA55 8000 0679 6080 ${String(10000000 + i).slice(-8)}`,
-            status: 'قيد الانتظار',
-            created_date: '2026/9/1'
-        });
-    }
-
-    apps.push({
-        id: 21,
-        app_id: 'APP-1788240000001-REV001',
-        full_name: 'سعد بن ناصر الدوسري',
-        nationality: 'سعودي',
-        national_id: '1000000008',
-        id_issue_place: 'الخرج',
-        birth_date: '1993-09-12',
-        gender: 'ذكر',
-        marital_status: 'متزوج',
-        phone: '0505551234',
-        email: 'saad.aldosari@gmail.com',
-        city: 'الخرج',
-        district: 'الخالدية',
-        street: 'طريق الملك عبدالله',
-        education_level: 'دبلوم',
-        education_inst: 'المعهد التقني',
-        degree_name: 'دبلوم حراسات ومنشآت',
-        degree_date: '2016-06-01',
-        job_title: 'مشرف أمن وسلامة',
-        project_name: 'مشروع مجمع وزارة الداخلية',
-        work_location: 'الرياض مجمع وزارة الداخلية',
-        shift: 'صباحي',
-        start_date: '2026-02-20',
-        bank_name: 'مصرف الراجحي',
-        bank_branch: 'فرع الخرج',
-        branch_code: '010',
-        iban: 'SA55 8000 0679 6080 9988 7766',
-        status: 'تمت المراجعة',
-        created_date: '2026/9/1'
-    });
-
-    apps.push({
-        id: 22,
-        app_id: 'APP-1788230000001-REJ001',
-        full_name: 'تركي بن عبدالعزيز الحربي',
-        nationality: 'سعودي',
-        national_id: '1055443322',
-        id_issue_place: 'القصيم',
-        birth_date: '1999-01-01',
-        gender: 'ذكر',
-        marital_status: 'أعزب',
-        phone: '0541112233',
-        email: 'turki.alharbi@gmail.com',
-        city: 'بريدة',
-        district: 'الصفراء',
-        street: 'طريق الملك فهد',
-        education_level: 'ثانوي',
-        education_inst: 'ثانوية بريدة',
-        degree_name: 'الثانوية',
-        degree_date: '2018-05-15',
-        job_title: 'ضابط أمن',
-        project_name: 'مشروع برج النصبان',
-        work_location: 'الرياض برج النصبان',
-        shift: 'ليلي',
-        start_date: '2026-02-20',
-        bank_name: 'البنك الأهلي',
-        bank_branch: 'فرع القصيم',
-        branch_code: '020',
-        iban: 'SA44 1000 0001 5566 7788 9900',
-        status: 'مرفوض',
-        created_date: '2026/9/1'
-    });
-    apps.push({
-        id: 23,
-        app_id: 'APP-1788230000002-REJ002',
-        full_name: 'فهد بن خالد الشمري',
-        nationality: 'سعودي',
-        national_id: '1044332211',
-        id_issue_place: 'حائل',
-        birth_date: '2000-07-20',
-        gender: 'ذكر',
-        marital_status: 'أعزب',
-        phone: '0539998877',
-        email: 'fahad.alshammari@gmail.com',
-        city: 'حائل',
-        district: 'صديان',
-        street: 'طريق المدينة',
-        education_level: 'ثانوي',
-        education_inst: 'ثانوية حائل',
-        degree_name: 'الثانوية',
-        degree_date: '2019-06-01',
-        job_title: 'ضابط أمن',
-        project_name: 'مشروع المربع الجديد',
-        work_location: 'الرياض المربع الجديد',
-        shift: 'صباحي',
-        start_date: '2026-02-20',
-        bank_name: 'مصرف الراجحي',
-        bank_branch: 'فرع حائل',
-        branch_code: '005',
-        iban: 'SA55 8000 0679 6080 3344 5566',
-        status: 'مرفوض',
-        created_date: '2026/9/1'
-    });
-
-    const sampleNames = [
-        'خالد بن فهد العتيبي', 'سلطان بن محمد القحطاني', 'عبدالعزيز بن ناصر الدوسري', 'فيصل بن عبدالله الشهري',
-        'ماجد بن سعيد الغامدي', 'نواف بن مسفر الزهراني', 'ياسر بن صالح القرني', 'بدر بن عثمان المالكي',
-        'أحمد بن حسن عسيري', 'عمر بن سليمان العنزي', 'منصور بن حمد الشمري', 'راشد بن حمد المري',
-        'مشعل بن زيد المطيري', 'بندر بن نايف السبيعي', 'ثامر بن راشد الهاجري', 'سامي بن مبارك الحربي',
-        'وليد بن عادل الصالح', 'زياد بن أحمد الغامدي', 'عادل بن فيصل الخالدي', 'فارس بن منصور البقمي'
+    const firstNames = [
+        'سلطان', 'نواف', 'فهد', 'خالد', 'تركي', 'فيصل', 'سلمان', 'عبدالعزيز', 'ماجد', 'بندر',
+        'مشعل', 'طلال', 'بدر', 'سعد', 'راشد', 'نايف', 'مسفر', 'منصور', 'ثامر', 'وليد',
+        'عادل', 'ياسر', 'زياد', 'فارس', 'سامي', 'عمر', 'أحمد', 'محمد', 'صالح', 'إبراهيم'
     ];
-    for (let i = 24; i <= 108; i++) {
-        const nameIdx = (i - 24) % sampleNames.length;
+    const fatherNames = [
+        'بن محمد', 'بن عبدالله', 'بن فهد', 'بن عبدالعزيز', 'بن سعد', 'بن ناصر', 'بن صالح', 'بن خالد',
+        'بن إبراهيم', 'بن سليمان', 'بن حمد', 'بن راشد', 'بن علي', 'بن حسن', 'بن منصور'
+    ];
+    const grandNames = [
+        'بن سعود', 'بن عبدالرحمن', 'بن عثمان', 'بن زيد', 'بن مبارك', 'بن مرعي', 'بن خلف', 'بن سالم',
+        'بن عايض', 'بن مسفر', 'بن جابر', 'بن عوض'
+    ];
+    const familyNames = [
+        'العتيبي', 'القحطاني', 'الدوسري', 'الشمري', 'الحربي', 'المطيري', 'الغامدي', 'الزهراني',
+        'العنزي', 'السبيعي', 'الشهري', 'المالكي', 'البقمي', 'الخالدي', 'الهاجري', 'المري', 'القرني', 'العسيري'
+    ];
+    const projectsList = [
+        { name: 'مشروع مجمع وزارة الداخلية', loc: 'الرياض - الملز' },
+        { name: 'مشروع المربع الجديد', loc: 'الرياض - المربع الجديد' },
+        { name: 'مشروع مركز الملك عبدالله المالي (KAFD)', loc: 'الرياض - مركز الملك عبدالله المالي' },
+        { name: 'مشروع هيئة السوق المالية', loc: 'الرياض - البرج المالي' },
+        { name: 'مشروع برج النصبان', loc: 'الرياض - طريق الملك فهد' }
+    ];
+    const jobTitlesList = [
+        'ضابط أمن',
+        'مشرف أمن',
+        'مدير مشروع أمن',
+        'حارس أمن',
+        'مشغل غرفة عمليات'
+    ];
+    const shiftsList = ['صباحي', 'مسائي', 'ليلي'];
+    const citiesList = [
+        { city: 'الرياض', district: 'الملقا', street: 'طريق أنس بن مالك' },
+        { city: 'الرياض', district: 'النرجس', street: 'طريق أبو بكر الصديق' },
+        { city: 'الرياض', district: 'العليا', street: 'شارع التخصصي' },
+        { city: 'الرياض', district: 'النسيم', street: 'شارع حسان بن ثابت' },
+        { city: 'الرياض', district: 'اليرموك', street: 'طريق الدمام الفرعي' },
+        { city: 'الخرج', district: 'الخالدية', street: 'طريق الملك عبدالله' },
+        { city: 'جدة', district: 'الروضة', street: 'شارع صاري' },
+        { city: 'الدمام', district: 'الشاطئ', street: 'طريق الخليج' },
+        { city: 'حائل', district: 'صديان', street: 'طريق الملك سعود' },
+        { city: 'القصيم', district: 'الصفراء', street: 'طريق الملك فهد' }
+    ];
+    const eduList = [
+        { level: 'ثانوي', inst: 'ثانوية الملك فهد بالرياض', deg: 'الثانوية العامة (علمي)' },
+        { level: 'دبلوم', inst: 'الكلية التقنية بالرياض', deg: 'دبلوم الأمن والسلامة المهنية' },
+        { level: 'بكالوريوس', inst: 'جامعة الإمام محمد بن سعود', deg: 'بكالوريوس علوم إدارية وأمنية' },
+        { level: 'دبلوم', inst: 'معهد الإدارة العامة', deg: 'دبلوم الحراسات الأمنية المتقدمة' },
+        { level: 'ثانوي', inst: 'ثانوية اليمامة بالرياض', deg: 'الثانوية العامة' }
+    ];
+    const banksList = [
+        { name: 'مصرف الراجحي', branch: 'فرع العليا', code: '80' },
+        { name: 'البنك الأهلي السعودي', branch: 'فرع الملز', code: '10' },
+        { name: 'بنك الرياض', branch: 'فرع المروج', code: '20' },
+        { name: 'مصرف الإنماء', branch: 'فرع التخصصي', code: '05' },
+        { name: 'بنك البلاد', branch: 'فرع النخيل', code: '15' }
+    ];
+
+    for (let i = 6; i <= 108; i++) {
+        let status = 'مكتمل';
+        if (i >= 6 && i <= 21) status = 'قيد الانتظار';
+        else if (i >= 22 && i <= 33) status = 'تمت المراجعة';
+        else if (i >= 34 && i <= 47) status = 'مقبول';
+        else if (i >= 48 && i <= 55) status = 'مرفوض';
+        else if (i >= 56 && i <= 66) status = 'إنهاء إجراءات';
+        else status = 'مكتمل';
+
+        const fn = firstNames[(i * 3) % firstNames.length];
+        const fat = fatherNames[(i * 5) % fatherNames.length];
+        const grd = grandNames[(i * 7) % grandNames.length];
+        const fam = familyNames[(i * 11) % familyNames.length];
+        const fullName = `${fn} ${fat} ${grd} ${fam}`;
+
+        const proj = projectsList[i % projectsList.length];
+        const job = jobTitlesList[(i * 2) % jobTitlesList.length];
+        const shift = shiftsList[i % shiftsList.length];
+        const loc = citiesList[i % citiesList.length];
+        const edu = eduList[i % eduList.length];
+        const bank = banksList[i % banksList.length];
+
+        const birthYear = 1988 + (i % 15);
+        const birthMonth = String(1 + (i % 12)).padStart(2, '0');
+        const birthDay = String(1 + ((i * 3) % 28)).padStart(2, '0');
+
+        const createdMonth = (i <= 40) ? '09' : ((i <= 75) ? '08' : '07');
+        const createdDay = String(1 + (i % 28)).padStart(2, '0');
+        const startMonth = String(2 + (i % 8)).padStart(2, '0');
+        const startDay = String(1 + ((i * 2) % 25)).padStart(2, '0');
+
         apps.push({
             id: i,
-            app_id: `APP-178822${String(1000000 + i * 543)}`,
-            full_name: `${sampleNames[nameIdx]} (#${i})`,
+            app_id: `APP-2026${String(1000 + i)}-${String(status === 'مقبول' ? 'ACC' : (status === 'مرفوض' ? 'REJ' : (status === 'تمت المراجعة' ? 'REV' : (status === 'إنهاء إجراءات' ? 'PRC' : (status === 'مكتمل' ? 'CMP' : 'PND')))))}${i}`,
+            full_name: fullName,
             nationality: 'سعودي',
-            national_id: `1089${String(100000 + i)}`,
-            id_issue_place: 'الرياض',
-            birth_date: '1996-03-15',
+            national_id: `10${String(8000000 + i * 73).slice(0, 7)}0`,
+            id_issue_place: loc.city,
+            birth_date: `${birthYear}-${birthMonth}-${birthDay}`,
             gender: 'ذكر',
             marital_status: (i % 2 === 0) ? 'متزوج' : 'أعزب',
-            phone: `0558${String(100000 + i)}`,
-            email: `completed.emp${i}@annasban.com`,
-            city: 'الرياض',
-            district: (i % 3 === 0) ? 'الملز' : ((i % 3 === 1) ? 'العليا' : 'النسيم'),
-            street: 'شارع الملك عبدالعزيز',
-            education_level: (i % 4 === 0) ? 'دبلوم' : 'ثانوي',
-            education_inst: 'وزارة التعليم',
-            degree_name: (i % 4 === 0) ? 'دبلوم أمني' : 'الثانوية العامة',
-            degree_date: '2019-05-20',
-            job_title: (i % 5 === 0) ? 'مشرف أمن وسلامة' : 'ضابط أمن ميداني',
-            project_name: (i % 4 === 0) ? 'مشروع المربع الجديد' : 'مشروع مجمع وزارة الداخلية',
-            work_location: 'الرياض',
-            shift: (i % 3 === 0) ? 'صباحي' : ((i % 3 === 1) ? 'مسائي' : 'ليلي'),
-            start_date: '2026-02-20',
-            bank_name: (i % 2 === 0) ? 'مصرف الراجحي' : 'البنك الأهلي السعودي',
-            bank_branch: 'فرع الرياض',
-            branch_code: '001',
-            iban: `SA55 8000 0679 6080 ${String(20000000 + i).slice(-8)}`,
-            status: 'مكتمل',
-            created_date: '2026/9/1'
+            phone: `05${(i % 2 === 0) ? '5' : '0'}${String(1000000 + i * 6311).slice(-7)}`,
+            email: `applicant.${i}@annasban.com`,
+            city: loc.city,
+            district: loc.district,
+            street: loc.street,
+            education_level: edu.level,
+            education_inst: edu.inst,
+            degree_name: edu.deg,
+            degree_date: `${birthYear + 21}-06-15`,
+            job_title: job,
+            project_name: proj.name,
+            work_location: proj.loc,
+            shift: shift,
+            start_date: `2026-${startMonth}-${startDay}`,
+            bank_name: bank.name,
+            bank_branch: bank.branch,
+            branch_code: `00${(i % 9) + 1}`,
+            iban: `SA55 ${bank.code}00 0679 6080 ${String(20000000 + i).slice(-8)}`,
+            status: status,
+            created_date: `2026/${createdMonth}/${createdDay}`
         });
     }
+
+    // تصحيح جميع أرقام الهوية والآيبان في الذاكرة لتطابق خوارزمية Luhn و Mod-97 بنسبة 100% دون تكرار
+    const seenClientNids = new Set();
+    apps.forEach((a, idx) => {
+        a.id = idx + 1;
+        let candNid = a.national_id === '1127777488' ? '1127777488' : makeClientValidNid(String(a.national_id).slice(0, 9));
+        if (seenClientNids.has(candNid)) {
+            candNid = makeClientValidNid(`119${String(100000 + a.id).slice(-6)}`);
+        }
+        seenClientNids.add(candNid);
+        a.national_id = candNid;
+        const cleanIban = String(a.iban || '').replace(/\s+/g, '');
+        if (cleanIban.length === 24) {
+            a.iban = makeClientValidIban(cleanIban.slice(4, 6), cleanIban.slice(6));
+        }
+    });
 
     fallbackAppsCache = apps;
     return apps;
@@ -394,25 +411,110 @@ function switchHrSubTab(tab) {
     safeHrRenderIcons();
 }
 
+function sortClientApplications(list, sortOrder) {
+    const arr = Array.isArray(list) ? [...list] : [];
+    const order = sortOrder || activeSortOrder || 'newest';
+    arr.sort((a, b) => {
+        if (order === 'oldest') return (a.id || 0) - (b.id || 0);
+        if (order === 'name_asc') return String(a.full_name || '').localeCompare(String(b.full_name || ''), 'ar');
+        if (order === 'name_desc') return String(b.full_name || '').localeCompare(String(a.full_name || ''), 'ar');
+        if (order === 'project') {
+            const cmp = String(a.project_name || '').localeCompare(String(b.project_name || ''), 'ar');
+            return cmp !== 0 ? cmp : ((b.id || 0) - (a.id || 0));
+        }
+        if (order === 'status') {
+            const cmp = String(a.status || '').localeCompare(String(b.status || ''), 'ar');
+            return cmp !== 0 ? cmp : ((b.id || 0) - (a.id || 0));
+        }
+        if (order === 'job') {
+            const cmp = String(a.job_title || '').localeCompare(String(b.job_title || ''), 'ar');
+            return cmp !== 0 ? cmp : ((b.id || 0) - (a.id || 0));
+        }
+        if (order === 'start_date') {
+            const cmp = String(b.start_date || '').localeCompare(String(a.start_date || ''));
+            return cmp !== 0 ? cmp : ((b.id || 0) - (a.id || 0));
+        }
+        return (b.id || 0) - (a.id || 0);
+    });
+    return arr;
+}
+
+function updateResultsCountBadge(displayedCount, totalCount) {
+    const badge = document.getElementById('hr_results_count_badge');
+    if (!badge) return;
+    const activeParts = [];
+    if (activeStatusFilter && activeStatusFilter !== 'الكل') activeParts.push(`الحالة: ${activeStatusFilter}`);
+    if (activeProjectFilter && activeProjectFilter !== 'الكل') activeParts.push(`المشروع: ${activeProjectFilter}`);
+    if (activeJobFilter && activeJobFilter !== 'الكل') activeParts.push(`المسمى: ${activeJobFilter}`);
+    if (activeShiftFilter && activeShiftFilter !== 'الكل') activeParts.push(`الوردية: ${activeShiftFilter}`);
+    const searchVal = document.getElementById('app_search_input')?.value?.trim();
+    if (searchVal) activeParts.push(`بحث: "${searchVal}"`);
+
+    const sortLabels = {
+        newest: 'الأحدث تقديماً',
+        oldest: 'الأقدم تقديماً',
+        name_asc: 'الاسم أبجدياً (أ - ي)',
+        name_desc: 'الاسم أبجدياً (ي - أ)',
+        project: 'حسب المشروع',
+        status: 'حسب الحالة',
+        job: 'حسب المسمى الوظيفي',
+        start_date: 'حسب تاريخ المباشرة'
+    };
+    const sortText = sortLabels[activeSortOrder] || 'الأحدث تقديماً';
+    const filterSummary = activeParts.length > 0 ? ` · الفلاتر النشطة: (${activeParts.join(' | ')})` : ' · عرض شامل لجميع السجلات';
+    badge.innerHTML = `📊 إجمالي النتائج المعروضة: <strong style="color:var(--primary); font-size:13.5px;">${displayedCount}</strong> من أصل <strong>${totalCount}</strong> مرشح · الترتيب: <strong>${sortText}</strong>${filterSummary}`;
+}
+
 async function loadApplications(status, search, project) {
     if (status !== undefined) activeStatusFilter = status;
     if (project !== undefined) activeProjectFilter = project;
     const currentStatus = activeStatusFilter;
     const currentProject = activeProjectFilter;
+    const currentJob = activeJobFilter;
+    const currentShift = activeShiftFilter;
+    const currentSort = activeSortOrder;
     const currentSearch = search !== undefined ? search : (document.getElementById('app_search_input')?.value || '');
-    const listContainer = document.getElementById('hr_applicants_list');
 
     try {
         const params = new URLSearchParams();
         if (currentStatus && currentStatus !== 'الكل') params.append('status', currentStatus);
         if (currentProject && currentProject !== 'الكل') params.append('project', currentProject);
+        if (currentJob && currentJob !== 'الكل') params.append('job', currentJob);
+        if (currentShift && currentShift !== 'الكل') params.append('shift', currentShift);
+        if (currentSort) params.append('sort', currentSort);
         if (currentSearch) params.append('search', currentSearch);
 
-        const res = await fetch(`${HR_API_BASE}/api/applications?${params.toString()}`);
+        const res = await fetch(`${HR_API_BASE}/api/applications?${params.toString()}`, {
+            headers: getHrAuthHeaders()
+        });
         if (res.ok) {
             const json = await res.json();
             const { metrics, projects, applications } = json.data;
-            applicationsCache = applications || [];
+            let srvApps = applications || [];
+            if (currentStatus && currentStatus !== 'الكل') {
+                srvApps = srvApps.filter(a => a.status === currentStatus);
+            }
+            if (currentProject && currentProject !== 'الكل') {
+                srvApps = srvApps.filter(a => a.project_name === currentProject);
+            }
+            if (currentJob && currentJob !== 'الكل') {
+                srvApps = srvApps.filter(a => a.job_title === currentJob);
+            }
+            if (currentShift && currentShift !== 'الكل') {
+                srvApps = srvApps.filter(a => a.shift === currentShift);
+            }
+            if (currentSearch) {
+                const q = currentSearch.toLowerCase();
+                srvApps = srvApps.filter(a =>
+                    (a.full_name && a.full_name.includes(q)) ||
+                    (a.app_id && a.app_id.toLowerCase().includes(q)) ||
+                    (a.national_id && a.national_id.includes(q)) ||
+                    (a.project_name && a.project_name.includes(q)) ||
+                    (a.job_title && a.job_title.includes(q)) ||
+                    (a.city && a.city.includes(q))
+                );
+            }
+            applicationsCache = sortClientApplications(srvApps, currentSort);
 
             if (metrics) {
                 const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
@@ -423,6 +525,7 @@ async function loadApplications(status, search, project) {
                 setTxt('stat_rejected', metrics.rejected);
                 setTxt('stat_processing', metrics.processing);
                 setTxt('stat_completed', metrics.completed);
+                updateResultsCountBadge(applicationsCache.length, metrics.total);
             }
 
             // تحديث واجهة فلترة المشاريع الحية
@@ -446,16 +549,24 @@ async function loadApplications(status, search, project) {
     if (currentProject && currentProject !== 'الكل') {
         filtered = filtered.filter(a => a.project_name === currentProject);
     }
+    if (currentJob && currentJob !== 'الكل') {
+        filtered = filtered.filter(a => a.job_title === currentJob);
+    }
+    if (currentShift && currentShift !== 'الكل') {
+        filtered = filtered.filter(a => a.shift === currentShift);
+    }
     if (currentSearch) {
         const q = currentSearch.toLowerCase();
         filtered = filtered.filter(a =>
             (a.full_name && a.full_name.includes(q)) ||
-            (a.app_id && a.app_id.includes(q)) ||
+            (a.app_id && a.app_id.toLowerCase().includes(q)) ||
             (a.national_id && a.national_id.includes(q)) ||
-            (a.project_name && a.project_name.includes(q))
+            (a.project_name && a.project_name.includes(q)) ||
+            (a.job_title && a.job_title.includes(q)) ||
+            (a.city && a.city.includes(q))
         );
     }
-    applicationsCache = filtered;
+    applicationsCache = sortClientApplications(filtered, currentSort);
 
     const fallbackMetrics = {
         total: allFallback.length,
@@ -474,6 +585,7 @@ async function loadApplications(status, search, project) {
     setTxt('stat_rejected', fallbackMetrics.rejected);
     setTxt('stat_processing', fallbackMetrics.processing);
     setTxt('stat_completed', fallbackMetrics.completed);
+    updateResultsCountBadge(applicationsCache.length, fallbackMetrics.total);
 
     const projectCounts = {};
     allFallback.forEach(a => {
@@ -516,13 +628,43 @@ function filterApplicationsByProject(project, element) {
     loadApplications(activeStatusFilter, document.getElementById('app_search_input')?.value, project);
 }
 
+function filterApplicationsByJob(job) {
+    activeJobFilter = job || 'الكل';
+    const sel = document.getElementById('app_job_filter');
+    if (sel && sel.value !== activeJobFilter) sel.value = activeJobFilter;
+    loadApplications(activeStatusFilter, document.getElementById('app_search_input')?.value, activeProjectFilter);
+}
+
+function filterApplicationsByShift(shift) {
+    activeShiftFilter = shift || 'الكل';
+    const sel = document.getElementById('app_shift_filter');
+    if (sel && sel.value !== activeShiftFilter) sel.value = activeShiftFilter;
+    loadApplications(activeStatusFilter, document.getElementById('app_search_input')?.value, activeProjectFilter);
+}
+
+function sortApplicationsBy(sortOrder) {
+    activeSortOrder = sortOrder || 'newest';
+    const sel = document.getElementById('app_sort_order');
+    if (sel && sel.value !== activeSortOrder) sel.value = activeSortOrder;
+    loadApplications(activeStatusFilter, document.getElementById('app_search_input')?.value, activeProjectFilter);
+}
+
 function resetApplicantFilters() {
     activeStatusFilter = 'الكل';
     activeProjectFilter = 'الكل';
+    activeJobFilter = 'الكل';
+    activeShiftFilter = 'الكل';
+    activeSortOrder = 'newest';
     const searchInput = document.getElementById('app_search_input');
     if (searchInput) searchInput.value = '';
     const sel = document.getElementById('app_project_filter');
     if (sel) sel.value = 'الكل';
+    const jobSel = document.getElementById('app_job_filter');
+    if (jobSel) jobSel.value = 'الكل';
+    const shiftSel = document.getElementById('app_shift_filter');
+    if (shiftSel) shiftSel.value = 'الكل';
+    const sortSel = document.getElementById('app_sort_order');
+    if (sortSel) sortSel.value = 'newest';
 
     document.querySelectorAll('.hr-status-card').forEach(c => c.classList.remove('active'));
     const firstCard = document.querySelector('.status-card-all');
@@ -815,7 +957,7 @@ async function updateAppStatus(appId, newStatus) {
     try {
         await fetch(`${HR_API_BASE}/api/applications/${appId}/status`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHrAuthHeaders(true),
             body: JSON.stringify({ status: newStatus })
         });
     } catch (err) {
@@ -839,7 +981,7 @@ async function saveCommenceDate(appId, newDate) {
     try {
         await fetch(`${HR_API_BASE}/api/applications/${appId}/start-date`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHrAuthHeaders(true),
             body: JSON.stringify({ startDate: newDate })
         });
     } catch (err) {}
@@ -1046,7 +1188,7 @@ function renderDocFooter(pageNum) {
             </div>
             <div style="text-align:center; flex:1; padding:0 15px; font-size:9px; color:#64748b; line-height:1.3;">
                 الإدارة العامة: الرياض - حي النموذجية - س.ت: 1010138495 - ص.ب: 12734 الرياض - غرفة تجارية: 194872<br>
-                هاتف: 920012225 - إدارة التشغيل: 0555977053 - خدمة العملاء: 0555737701 - info@3s-secrity.net - www.3s-security.net
+                هاتف: 920012225 - إدارة التشغيل: 0555977053 - خدمة العملاء: 0555737701 - info@3s-security.net - www.3s-security.net
             </div>
             <div style="text-align:left; font-size:10px; font-weight:700; color:#475569;">
                 صفحة ${pageNum}
@@ -1221,6 +1363,9 @@ function generateOfficialDocs(appId, mode) {
     // 3. نموذج استمارة طلب وظيفة (Page 3)
     // ==========================================
     if (selectedDocs.includes('app_form')) {
+        const birthStr = app.birth_date || '1999-11-01';
+        const birthYear = parseInt(String(birthStr).slice(0, 4), 10) || 1999;
+        const computedAge = Math.max(18, 2026 - birthYear);
         pagesHtml += `
             <div class="official-page">
                 ${renderDocHeader(app, app.app_id, commenceDate)}
@@ -1231,7 +1376,7 @@ function generateOfficialDocs(appId, mode) {
                 <div style="font-size:13.5px; font-weight:800; color:#c8102e; margin-bottom:8px;">المعلومات الشخصية:</div>
                 <table class="official-table">
                     <tr><th>الاسم كامل حسب الهوية:</th><td colspan="3" style="font-weight:700;">${app.full_name}</td></tr>
-                    <tr><th>رقم الهوية الوطنية:</th><td style="font-family:monospace; font-weight:700;">${app.national_id}</td><th>تاريخ الميلاد:</th><td>${app.birth_date || '1999-11-01'} (العمر: 26)</td></tr>
+                    <tr><th>رقم الهوية الوطنية:</th><td style="font-family:monospace; font-weight:700;">${app.national_id}</td><th>تاريخ الميلاد:</th><td>${birthStr} (العمر: ${computedAge})</td></tr>
                     <tr><th>الحالة الاجتماعية:</th><td>${app.marital_status || 'أعزب'}</td><th>الجنس:</th><td>${app.gender || 'ذكر'}</td></tr>
                     <tr><th>عنوان الإقامة:</th><td>${app.city} - حي ${app.district}</td><th>الشارع:</th><td>${app.street}</td></tr>
                     <tr><th>رقم الجوال:</th><td style="direction:ltr; text-align:right;">${app.phone}</td><th>البريد الإلكتروني:</th><td>${app.email || '-'}</td></tr>
@@ -1401,6 +1546,21 @@ function generateOfficialDocs(appId, mode) {
     // 7. عقد عمل لمهمة محددة – سعودي (Pages 8, 9, 10, 11)
     // ==========================================
     if (selectedDocs.includes('contract')) {
+        const jobStr = String(app.job_title || 'ضابط أمن');
+        let salBasic = '4,000 ر.س', salHousing = '1,000 ر.س', salTransport = '500 ر.س', salSupervision = '0 ر.س', salMgmt = '0 ر.س', salTotal = '5,500 ريال سعودي';
+        if (jobStr.includes('مدير')) {
+            salBasic = '8,500 ر.س';
+            salHousing = '2,125 ر.س';
+            salTransport = '1,000 ر.س';
+            salMgmt = '0 ر.س';
+            salTotal = '11,625 ريال سعودي';
+        } else if (jobStr.includes('مشرف')) {
+            salBasic = '4,500 ر.س';
+            salHousing = '1,125 ر.س';
+            salTransport = '500 ر.س';
+            salSupervision = '0 ر.س';
+            salTotal = '6,125 ريال سعودي';
+        }
         // Page 8
         pagesHtml += `
             <div class="official-page">
@@ -1451,12 +1611,12 @@ function generateOfficialDocs(appId, mode) {
                     <tbody>
                         <tr>
                             <td style="font-weight:700;">${app.job_title}</td>
-                            <td>2,500 ر.س</td>
-                            <td>2,000 ر.س</td>
-                            <td>1,500 ر.س</td>
-                            <td>0 ر.س</td>
-                            <td>0 ر.س</td>
-                            <td style="font-weight:900; color:#c8102e; background:#fef2f2;">6,000 ريال سعودي</td>
+                            <td>${salBasic}</td>
+                            <td>${salHousing}</td>
+                            <td>${salTransport}</td>
+                            <td>${salSupervision}</td>
+                            <td>${salMgmt}</td>
+                            <td style="font-weight:900; color:#c8102e; background:#fef2f2;">${salTotal}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1833,6 +1993,9 @@ function generateOfficialDocs(appId, mode) {
         window.renderApplicationsList = renderApplicationsList;
         window.filterApplicationsByStatus = filterApplicationsByStatus;
         window.filterApplicationsByProject = filterApplicationsByProject;
+        window.filterApplicationsByJob = filterApplicationsByJob;
+        window.filterApplicationsByShift = filterApplicationsByShift;
+        window.sortApplicationsBy = sortApplicationsBy;
         window.resetApplicantFilters = resetApplicantFilters;
         window.handleApplicationSearch = handleApplicationSearch;
         window.toggleApplicantAccordion = toggleApplicantAccordion;
