@@ -1,0 +1,51 @@
+# ==============================================================================
+# شركة النصبان للحراسات الأمنية - تشغيل المنظومة المتكاملة مع وكيل Nginx الآمن
+# أمر التشغيل: docker compose up -d
+# ==============================================================================
+
+services:
+  # خادم التطبيق الرئيسي والواجهات البرمجية الآمنة
+  annasban-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: annasban_core_app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - JWT_SECRET=annasban_sec_key_2026_super_confidential_9938472918
+      - DATABASE_PATH=/app/data/annasban_security.db
+    volumes:
+      - annasban_db_data:/app/data
+    networks:
+      - annasban_internal_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # خادم Nginx لعزل الخادم، وإدارة شهادات SSL، وتطبيق ترويسات الأمان وحدود الطلبات
+  annasban-nginx:
+    image: nginx:alpine
+    container_name: annasban_reverse_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - annasban-app
+    networks:
+      - annasban_internal_net
+
+networks:
+  annasban_internal_net:
+    driver: bridge
+
+volumes:
+  annasban_db_data:
+    driver: local
