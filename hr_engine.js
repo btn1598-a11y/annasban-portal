@@ -1021,10 +1021,10 @@ function closeAttachmentModal() {
 }
 
 // =========================================================================
-// 🖨️ منظومة طابعة كروت زيبرا Zebra 300 الرسمية (CR80 Direct PVC Card Engine)
+// 🖨️ منظومة طابعة كروت زيبرا Zebra 300 الرسمية (CR80 Portrait 54x85.6mm - وجه واحد فقط)
 // =========================================================================
 
-function generateZebraFrontCardHtml(app) {
+function generateZebraPortraitCardHtml(app) {
     const rawNid = String(app.national_id || '1089271645').replace(/\*/g, '');
     const cleanNid = rawNid.length >= 10 ? rawNid : '1089271645';
     const empId = app.app_id || (app.employeeId || `EMP-${1000 + (app.id || 42)}`);
@@ -1033,139 +1033,91 @@ function generateZebraFrontCardHtml(app) {
     const location = app.project_name || app.work_location || app.location || 'مشروع مجمع وزارة الداخلية';
 
     return `
-    <div class="zebra-card-page" style="width:85.6mm; height:54mm; max-width:85.6mm; max-height:54mm; min-width:85.6mm; min-height:54mm; margin:0; padding:0; box-sizing:border-box; position:relative; background:#ffffff; overflow:hidden; display:flex; flex-direction:column; font-family:'Tajawal', -apple-system, sans-serif; direction:rtl; text-align:right;">
+    <div class="zebra-card-portrait" style="width:54mm; height:85.6mm; max-width:54mm; max-height:85.6mm; min-width:54mm; min-height:85.6mm; margin:0; padding:0; box-sizing:border-box; position:relative; background:#ffffff; overflow:hidden; display:flex; flex-direction:column; font-family:'Tajawal', -apple-system, sans-serif; direction:rtl; text-align:center;">
         
-        <!-- ترويسة البطاقة العلوية (Header: 9mm) -->
-        <div style="background:#8b1a1a; color:#ffffff; height:9mm; padding:0 3mm; display:flex; justify-content:space-between; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-            <div style="display:flex; align-items:center; gap:3px;">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span style="font-size:8pt; font-weight:900; letter-spacing:0.2px;">النصبان للحراسات الأمنية (3S)</span>
+        <!-- ترويسة البطاقة الطولية الرسمية (Header: 13.5mm) -->
+        <div style="background:#8b1a1a; color:#ffffff; height:13.5mm; padding:1.5mm 2mm 1mm 2mm; display:flex; flex-direction:column; justify-content:center; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:1px;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style="font-size:7.2pt; font-weight:900; letter-spacing:0.2px; color:#ffffff;">شركة النصبان للحراسات الأمنية</span>
             </div>
-            <div style="background:rgba(255,255,255,0.22); color:#ffffff; font-size:6pt; font-weight:800; padding:1px 5px; border-radius:3px;">
-                تصريح فئة (أ)
+            <div style="font-size:5.2pt; color:#fecdd3; font-weight:700; line-height:1.1;">
+                ترخيص الأمن العام رقم (214) • س.ت: 1010138495
             </div>
         </div>
 
         <!-- شريط أمني ذهبي (1.2mm) -->
         <div style="height:1.2mm; background:linear-gradient(90deg, #d97706, #fbbf24, #d97706); -webkit-print-color-adjust:exact; print-color-adjust:exact;"></div>
 
-        <!-- جسم البطاقة الأمامي (Body: 34.5mm) -->
-        <div style="flex:1; padding:2mm 3.5mm; display:flex; gap:3mm; align-items:center; background:#ffffff;">
-            
-            <!-- إطار الصورة الرسمية (Photo Frame: 21mm × 27mm) -->
-            <div style="width:21mm; height:27mm; border:1px solid #cbd5e1; border-radius:2mm; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1mm; position:relative; overflow:hidden; flex-shrink:0;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b1a1a" stroke-width="1.8" style="margin-bottom:2px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span style="font-size:5.5pt; color:#64748b; font-weight:700; line-height:1;">صورة رجل الأمن</span>
-                <span style="font-size:5pt; color:#8b1a1a; font-weight:800; margin-top:2px;">معتمد 3S</span>
+        <!-- شريط تصريح أمني فئة أ (3.8mm) -->
+        <div style="background:#f1f5f9; border-bottom:0.8px solid #e2e8f0; height:3.8mm; display:flex; justify-content:space-between; align-items:center; padding:0 3mm; font-size:5.5pt; font-weight:800; color:#8b1a1a;">
+            <span>تصريح أمني ميداني</span>
+            <span style="background:#8b1a1a; color:#ffffff; font-size:4.8pt; padding:0.5px 4px; border-radius:2px;">فئة (أ)</span>
+        </div>
+
+        <!-- صندوق الصورة الرسمية (Photo Box: 27mm) -->
+        <div style="padding:2mm 0 1mm 0; display:flex; justify-content:center; align-items:center; background:#ffffff;">
+            <div style="width:23mm; height:27mm; border:1.2px solid #8b1a1a; border-radius:2.5mm; background:#f8fafc; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b1a1a" stroke-width="1.8" style="margin-bottom:2px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style="font-size:5.2pt; color:#64748b; font-weight:700; line-height:1;">صورة رجل الأمن</span>
+                <span style="font-size:4.8pt; color:#8b1a1a; font-weight:900; margin-top:2px;">معتمد 3S</span>
                 <div style="position:absolute; bottom:-3px; right:-3px; opacity:0.1; transform:rotate(-20deg);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="#8b1a1a"><circle cx="12" cy="12" r="10"/></svg>
                 </div>
             </div>
+        </div>
 
-            <!-- بيانات الموظف الرسمية -->
-            <div style="flex:1; min-width:0; text-align:right;">
-                <div style="font-size:8.8pt; font-weight:900; color:#0f172a; margin-bottom:1px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
-                <div style="font-size:7.2pt; font-weight:800; color:#8b1a1a; margin-bottom:1.5mm;">${role}</div>
-                
-                <div style="font-size:6.3pt; line-height:1.45; color:#334155;">
-                    <div><span style="color:#64748b;">الرقم الوظيفي:</span> <strong style="color:#0f172a; font-family:monospace; font-size:7pt;">${empId}</strong></div>
-                    <div><span style="color:#64748b;">الهوية الوطنية:</span> <strong style="color:#0f172a; font-family:monospace; font-size:6.8pt;">${cleanNid}</strong></div>
-                    <div><span style="color:#64748b;">فصيلة الدم:</span> <strong style="color:#0f172a;">O+</strong> • <span style="color:#059669; font-weight:800;">✓ لائق أمنياً</span></div>
+        <!-- بيانات رجل الأمن الرسمية (Details: 22mm) -->
+        <div style="padding:0 3mm; flex:1; display:flex; flex-direction:column; justify-content:center; text-align:center;">
+            <div style="font-size:8.8pt; font-weight:900; color:#0f172a; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${name}
+            </div>
+            <div style="font-size:7.2pt; font-weight:800; color:#8b1a1a; margin-top:1px; margin-bottom:1.5mm;">
+                ${role}
+            </div>
+            
+            <!-- جدول البيانات المصغر -->
+            <div style="background:#f8fafc; border:0.8px solid #e2e8f0; border-radius:3px; padding:1.5mm 2.5mm; font-size:5.8pt; line-height:1.45; text-align:right;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#64748b;">الرقم الوظيفي:</span>
+                    <strong style="color:#0f172a; font-family:monospace; font-size:6.6pt;">${empId}</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#64748b;">الهوية الوطنية:</span>
+                    <strong style="color:#0f172a; font-family:monospace; font-size:6.4pt;">${cleanNid}</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#64748b;">فصيلة الدم / اللياقة:</span>
+                    <span style="color:#059669; font-weight:800;">O+ • لائق أمنياً</span>
                 </div>
             </div>
         </div>
 
-        <!-- تذييل البطاقة الأمامية (Footer: 9.3mm) -->
-        <div style="background:#f8fafc; border-top:0.8px solid #e2e8f0; height:9.3mm; padding:0 3.5mm; display:flex; justify-content:space-between; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:62mm;">
-                <span style="font-size:5pt; color:#64748b; display:block; line-height:1;">المشروع الميداني المعتمد:</span>
-                <strong style="font-size:6.2pt; color:#0f172a; line-height:1.2;">${location}</strong>
+        <!-- تذييل المشروع ورمز التحقق QR (Footer: 15mm) -->
+        <div style="background:#f8fafc; border-top:0.8px solid #e2e8f0; height:15mm; padding:1.5mm 3mm; display:flex; justify-content:space-between; align-items:center; text-align:right; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:37mm;">
+                <span style="font-size:4.8pt; color:#64748b; display:block; line-height:1;">المشروع الميداني المعتمد:</span>
+                <strong style="font-size:5.8pt; color:#0f172a; line-height:1.2; display:block; overflow:hidden; text-overflow:ellipsis;">${location}</strong>
+                <span style="font-size:4.6pt; color:#059669; font-weight:700; display:block; margin-top:1px;">✓ معتمد ومسجل بالمنظومة</span>
             </div>
             <!-- رمز QR للتحقق الميداني الفوري -->
-            <div style="width:7.5mm; height:7.5mm; background:#ffffff; border:0.5px solid #cbd5e1; border-radius:1px; padding:0.4mm; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+            <div style="width:8.5mm; height:8.5mm; background:#ffffff; border:0.5px solid #cbd5e1; border-radius:1px; padding:0.4mm; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="25" height="25" viewBox="0 0 36 36" fill="none">
                     <rect width="36" height="36" fill="#ffffff"/>
                     <path d="M4 4h10v10H4V4zm2 2v6h6V6H6zm16-2h10v10H22V4zm2 2v6h6V6h-6zM4 22h10v10H4V22zm2 2v6h6v-6H6zm16 4h4v4h-4v-4zm6 0h4v4h-4v-4zm-6 6h4v4h-4v-4z" fill="#0f172a"/>
                 </svg>
             </div>
         </div>
-    </div>
-    `;
-}
-window.generateZebraFrontCardHtml = generateZebraFrontCardHtml;
 
-function generateZebraBackCardHtml(app) {
-    const empId = app.app_id || (app.employeeId || `EMP-${1000 + (app.id || 42)}`);
-
-    return `
-    <div class="zebra-card-page" style="width:85.6mm; height:54mm; max-width:85.6mm; max-height:54mm; min-width:85.6mm; min-height:54mm; margin:0; padding:0; box-sizing:border-box; position:relative; background:#ffffff; overflow:hidden; display:flex; flex-direction:column; font-family:'Tajawal', -apple-system, sans-serif; direction:rtl; text-align:right;">
-        
-        <!-- ترويسة البطاقة الخلفية (Header: 8mm) -->
-        <div style="background:#1e293b; color:#ffffff; height:8mm; padding:0 3.5mm; display:flex; justify-content:space-between; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-            <span style="font-size:7pt; font-weight:800;">تعليمات وضوابط حمل البطاقة الأمنية</span>
-            <span style="font-size:5.5pt; color:#cbd5e1; font-weight:700;">ترخيص رقم (214)</span>
-        </div>
-
-        <!-- متن التعليمات الأمنية الرسمية -->
-        <div style="flex:1; padding:2mm 3.5mm; font-size:5.3pt; line-height:1.32; color:#334155; background:#ffffff;">
-            <div style="margin-bottom:1.5px;">• وثيقة أمنية رسمية صادرة بموجب ترخيص الأمن العام رقم (214)، وتعد عهدة شخصية يحظر إعارتها.</div>
-            <div style="margin-bottom:1.5px;">• يجب إبراز البطاقة بصفة دائمة وتثبيتها على الزي الرسمي أثناء أداء نوبات الحراسة والتفتيش بالمشروع.</div>
-            <div style="margin-bottom:1.5px;">• يمنع استخدام هذه البطاقة في غير الأغراض الرسمية الميدانية، وتلغى صلاحيتها بانتهاء عقد العمل.</div>
-            <div>• في حال العثور على البطاقة، يرجى تسليمها لأقرب مركز شرطة أو الاتصال فوراً بمركز العمليات: <strong>920012225</strong>.</div>
-        </div>
-
-        <!-- شريط الباركود والتوقيع المعتمد (Footer: 14mm) -->
-        <div style="background:#f8fafc; border-top:0.8px solid #e2e8f0; height:14mm; padding:0 3.5mm; display:flex; justify-content:space-between; align-items:center; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-            
-            <!-- باركود تسلسلي SVG -->
-            <div>
-                <svg width="85" height="17" viewBox="0 0 120 25">
-                    <rect x="0" y="0" width="3" height="20" fill="#0f172a"/>
-                    <rect x="5" y="0" width="1.5" height="20" fill="#0f172a"/>
-                    <rect x="8" y="0" width="4" height="20" fill="#0f172a"/>
-                    <rect x="14" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="18" y="0" width="1" height="20" fill="#0f172a"/>
-                    <rect x="21" y="0" width="3.5" height="20" fill="#0f172a"/>
-                    <rect x="26" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="30" y="0" width="4" height="20" fill="#0f172a"/>
-                    <rect x="36" y="0" width="1.5" height="20" fill="#0f172a"/>
-                    <rect x="39" y="0" width="3" height="20" fill="#0f172a"/>
-                    <rect x="44" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="48" y="0" width="4" height="20" fill="#0f172a"/>
-                    <rect x="54" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="58" y="0" width="3.5" height="20" fill="#0f172a"/>
-                    <rect x="63" y="0" width="1.5" height="20" fill="#0f172a"/>
-                    <rect x="66" y="0" width="3" height="20" fill="#0f172a"/>
-                    <rect x="71" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="75" y="0" width="4" height="20" fill="#0f172a"/>
-                    <rect x="81" y="0" width="1.5" height="20" fill="#0f172a"/>
-                    <rect x="84" y="0" width="3.5" height="20" fill="#0f172a"/>
-                    <rect x="89" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="93" y="0" width="3" height="20" fill="#0f172a"/>
-                    <rect x="98" y="0" width="1.5" height="20" fill="#0f172a"/>
-                    <rect x="101" y="0" width="4" height="20" fill="#0f172a"/>
-                    <rect x="107" y="0" width="2" height="20" fill="#0f172a"/>
-                    <rect x="111" y="0" width="3" height="20" fill="#0f172a"/>
-                    <rect x="116" y="0" width="2" height="20" fill="#0f172a"/>
-                </svg>
-                <div style="font-size:5.2pt; font-family:monospace; color:#475569; text-align:center; letter-spacing:0.8px;">*${empId}*</div>
-            </div>
-
-            <!-- الختم والاعتماد الرسمي -->
-            <div style="text-align:left; display:flex; align-items:center; gap:3px;">
-                <div style="font-size:5.2pt; color:#475569; line-height:1.15; text-align:center;">
-                    <span>إدارة العمليات الأمنية</span><br>
-                    <strong style="color:#0f172a;">عبدالرحمن الحاتم</strong>
-                </div>
-                <div style="width:19px; height:19px; border:1px solid #8b1a1a; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#8b1a1a; font-size:5.5px; font-weight:800; transform:rotate(-15deg); flex-shrink:0;">
-                    ختم 3S
-                </div>
-            </div>
+        <!-- شريط الطوارئ السفلي (Bottom Strip: 3.2mm) -->
+        <div style="background:#1e293b; color:#ffffff; height:3.2mm; display:flex; justify-content:center; align-items:center; font-size:4.8pt; font-weight:700; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+            طوارئ العمليات والتحكم 24/7: 920012225
         </div>
     </div>
     `;
 }
-window.generateZebraBackCardHtml = generateZebraBackCardHtml;
+window.generateZebraPortraitCardHtml = generateZebraPortraitCardHtml;
+window.generateZebraFrontCardHtml = generateZebraPortraitCardHtml;
 
 function updateZebraAcceptedCounter() {
     const pill = document.getElementById('zebra_accepted_counter_pill');
@@ -1246,13 +1198,6 @@ window.renderZebraCandidatesList = renderZebraCandidatesList;
 
 function updateZebraPageCounter(overrideCount) {
     let count = typeof overrideCount === 'number' ? overrideCount : document.querySelectorAll('.cb-zebra-candidate:checked').length;
-    const sides = document.getElementById('zebra_batch_sides')?.value || 'duplex';
-    const profile = document.getElementById('zebra_batch_printer_profile')?.value || 'zebra';
-
-    const totalPages = (profile === 'zebra') 
-        ? (sides === 'duplex' ? count * 2 : count)
-        : count;
-
     const summaryEl = document.getElementById('zebra_candidates_summary_text');
     const pagesEl = document.getElementById('zebra_pages_counter_text');
 
@@ -1260,9 +1205,7 @@ function updateZebraPageCounter(overrideCount) {
         summaryEl.innerHTML = `الموظفون المؤهلون لإصدار البطاقات: <strong style="color:var(--primary); font-size:14px;">${count} موظف</strong>`;
     }
     if (pagesEl) {
-        pagesEl.innerHTML = (profile === 'zebra')
-            ? `إجمالي بطاقات زيبرا: <strong>${count} كارت</strong> (<span style="color:#8b1a1a; font-weight:800;">${totalPages} صفحة طباعة للقلاب</span>)`
-            : `إجمالي صفحات A4 المجمعة: <strong>${totalPages} صفحة</strong>`;
+        pagesEl.innerHTML = `إجمالي بطاقات زيبرا: <strong>${count} كارت طولي</strong> (<span style="color:#8b1a1a; font-weight:800;">${count} صفحة - وجه واحد فقط</span>)`;
     }
 }
 window.updateZebraPageCounter = updateZebraPageCounter;
@@ -1292,18 +1235,14 @@ function executeZebraBatchPrint() {
     }
 
     const profile = document.getElementById('zebra_batch_printer_profile')?.value || 'zebra';
-    const sides = document.getElementById('zebra_batch_sides')?.value || 'duplex';
-
     const container = document.getElementById('security-badge-print-container');
     if (!container) return;
 
     if (profile === 'zebra') {
+        // نمط كروت زيبرا 300 الطولية (Portrait 54x85.6mm - وجه واحد فقط)
         let html = '';
         selectedApps.forEach(app => {
-            html += generateZebraFrontCardHtml(app);
-            if (sides === 'duplex') {
-                html += generateZebraBackCardHtml(app);
-            }
+            html += generateZebraPortraitCardHtml(app);
         });
         container.innerHTML = html;
         closeZebraBatchModal();
@@ -1313,6 +1252,7 @@ function executeZebraBatchPrint() {
             window.print();
         }
     } else {
+        // نمط ورق A4 المجمع
         let html = '';
         selectedApps.forEach(app => {
             const rawNid = String(app.national_id || '1089271645').replace(/\*/g, '');
@@ -1353,7 +1293,8 @@ function printApplicantSecurityBadge(appId, format = 'zebra') {
         if (format === 'zebra') {
             const container = document.getElementById('security-badge-print-container');
             if (container) {
-                container.innerHTML = generateZebraFrontCardHtml(app) + generateZebraBackCardHtml(app);
+                // كارت طولي وجه واحد فقط
+                container.innerHTML = generateZebraPortraitCardHtml(app);
             }
             if (typeof window.printDocumentSection === 'function') {
                 window.printDocumentSection('zebra-badge');

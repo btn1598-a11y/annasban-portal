@@ -1536,7 +1536,7 @@
                 zoom: 100% !important;
             }
             .top-gov-bar, .main-header, .main-footer, .stepper-nav, .hero-section,
-            .official-doc-actions, .no-print, button, .access-btn {
+            .metrics-bar-section, .official-doc-actions, .no-print, button, .access-btn {
                 display: none !important;
             }
             .gov-card {
@@ -1656,17 +1656,19 @@
                 print-color-adjust: exact !important;
             }
 
-            /* الوضع 5: طباعة كروت بلاستيكية مباشرة لطابعة زيبرا Zebra 300 (CR80 Direct PVC Card Mode) */
+            /* الوضع 5: طباعة كروت بلاستيكية مباشرة لطابعة زيبرا Zebra 300 (CR80 Portrait 54x85.6mm - وجه واحد فقط) */
+            body[data-print-mode="zebra-badge"] > *:not(#security-badge-print-container),
+            body[data-print-mode="zebra-badge"] .metrics-bar-section,
+            body[data-print-mode="zebra-badge"] .hero-section,
+            body[data-print-mode="zebra-badge"] .top-gov-bar,
+            body[data-print-mode="zebra-badge"] .main-header,
+            body[data-print-mode="zebra-badge"] .main-footer,
+            body[data-print-mode="zebra-badge"] .stepper-nav,
             body[data-print-mode="zebra-badge"] .main-content-area,
             body[data-print-mode="zebra-badge"] #official-documents-modal,
             body[data-print-mode="zebra-badge"] #attachmentModal,
             body[data-print-mode="zebra-badge"] #nafathModal,
             body[data-print-mode="zebra-badge"] #zebraBatchModal,
-            body[data-print-mode="zebra-badge"] .top-gov-bar,
-            body[data-print-mode="zebra-badge"] .main-header,
-            body[data-print-mode="zebra-badge"] .main-footer,
-            body[data-print-mode="zebra-badge"] .stepper-nav,
-            body[data-print-mode="zebra-badge"] .hero-section,
             body[data-print-mode="zebra-badge"] .official-doc-actions,
             body[data-print-mode="zebra-badge"] button,
             body[data-print-mode="zebra-badge"] .access-btn {
@@ -1678,14 +1680,16 @@
                 color: #0f172a !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                width: 85.6mm !important;
-                min-width: 85.6mm !important;
+                width: 54mm !important;
+                min-width: 54mm !important;
+                max-width: 54mm !important;
             }
 
             body[data-print-mode="zebra-badge"] #security-badge-print-container {
                 display: block !important;
                 position: static !important;
-                width: 85.6mm !important;
+                width: 54mm !important;
+                max-width: 54mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
@@ -1694,13 +1698,13 @@
                 print-color-adjust: exact !important;
             }
 
-            .zebra-card-page {
-                width: 85.6mm !important;
-                height: 54mm !important;
-                max-width: 85.6mm !important;
-                max-height: 54mm !important;
-                min-width: 85.6mm !important;
-                min-height: 54mm !important;
+            .zebra-card-portrait {
+                width: 54mm !important;
+                height: 85.6mm !important;
+                max-width: 54mm !important;
+                max-height: 85.6mm !important;
+                min-width: 54mm !important;
+                min-height: 85.6mm !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 box-sizing: border-box !important;
@@ -1717,7 +1721,7 @@
                 print-color-adjust: exact !important;
             }
 
-            .zebra-card-page:last-child {
+            .zebra-card-portrait:last-child {
                 page-break-after: auto !important;
                 break-after: auto !important;
             }
@@ -3676,7 +3680,7 @@
                 document.head.appendChild(styleEl);
             }
             if (mode === 'zebra') {
-                styleEl.textContent = `@media print { @page { size: 85.6mm 54mm !important; margin: 0 !important; } }`;
+                styleEl.textContent = `@media print { @page { size: 54mm 85.6mm !important; margin: 0 !important; } }`;
             } else {
                 styleEl.textContent = `@media print { @page { size: A4 portrait !important; margin: 10mm !important; } }`;
             }

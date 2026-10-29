@@ -340,11 +340,11 @@ async function runTestSuite() {
             indexHtml.includes('body[data-print-mode="zebra-badge"]') &&
             indexHtml.includes('id="zebraBatchModal"') &&
             indexHtml.includes('id="zebra_accepted_counter_pill"') &&
+            indexHtml.includes('.metrics-bar-section') &&
             hrEngineJs.includes('openZebraBatchModal') &&
             hrEngineJs.includes('executeZebraBatchPrint') &&
-            hrEngineJs.includes('generateZebraFrontCardHtml') &&
-            hrEngineJs.includes('generateZebraBackCardHtml'),
-            'جاهزية محرك طابعة زيبرا 300 (Zebra ZC300) وتصدير بطاقات جميع المقبولين دفعة واحدة بضغطة زر'
+            hrEngineJs.includes('generateZebraPortraitCardHtml'),
+            'جاهزية محرك طابعة زيبرا 300 (Zebra ZC300) للبطاقات الطولية (Portrait 54x85.6mm) بوجه واحد وبدون أي نصوص زائدة'
         );
 
         console.log('\n===============================================================');
