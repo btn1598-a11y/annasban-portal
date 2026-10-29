@@ -1610,11 +1610,12 @@
                 padding: 24px !important;
             }
 
-            /* الوضع 4: طباعة البطاقة الأمنية الرسمية حصراً (CR80 Standard ID Card) */
+            /* الوضع 4: طباعة البطاقة الأمنية الرسمية حصراً (CR80 Standard ID Card - نمط الورق A4) */
             body[data-print-mode="badge"] .main-content-area,
             body[data-print-mode="badge"] #official-documents-modal,
             body[data-print-mode="badge"] #attachmentModal,
             body[data-print-mode="badge"] #nafathModal,
+            body[data-print-mode="badge"] #zebraBatchModal,
             body[data-print-mode="badge"] .top-gov-bar,
             body[data-print-mode="badge"] .main-header,
             body[data-print-mode="badge"] .main-footer,
@@ -1653,6 +1654,72 @@
                 break-inside: avoid !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+            }
+
+            /* الوضع 5: طباعة كروت بلاستيكية مباشرة لطابعة زيبرا Zebra 300 (CR80 Direct PVC Card Mode) */
+            body[data-print-mode="zebra-badge"] .main-content-area,
+            body[data-print-mode="zebra-badge"] #official-documents-modal,
+            body[data-print-mode="zebra-badge"] #attachmentModal,
+            body[data-print-mode="zebra-badge"] #nafathModal,
+            body[data-print-mode="zebra-badge"] #zebraBatchModal,
+            body[data-print-mode="zebra-badge"] .top-gov-bar,
+            body[data-print-mode="zebra-badge"] .main-header,
+            body[data-print-mode="zebra-badge"] .main-footer,
+            body[data-print-mode="zebra-badge"] .stepper-nav,
+            body[data-print-mode="zebra-badge"] .hero-section,
+            body[data-print-mode="zebra-badge"] .official-doc-actions,
+            body[data-print-mode="zebra-badge"] button,
+            body[data-print-mode="zebra-badge"] .access-btn {
+                display: none !important;
+            }
+
+            body[data-print-mode="zebra-badge"] {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 85.6mm !important;
+                min-width: 85.6mm !important;
+            }
+
+            body[data-print-mode="zebra-badge"] #security-badge-print-container {
+                display: block !important;
+                position: static !important;
+                width: 85.6mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .zebra-card-page {
+                width: 85.6mm !important;
+                height: 54mm !important;
+                max-width: 85.6mm !important;
+                max-height: 54mm !important;
+                min-width: 85.6mm !important;
+                min-height: 54mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                position: relative !important;
+                background: #ffffff !important;
+                overflow: hidden !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                display: flex !important;
+                flex-direction: column !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .zebra-card-page:last-child {
+                page-break-after: auto !important;
+                break-after: auto !important;
             }
         }
     </style>
@@ -2643,6 +2710,32 @@
 
                     <!-- SUB-VIEW 1: APPLICANTS DIRECTORY & DOCUMENT GENERATION -->
                     <div id="subtab-content-apps">
+                        
+                        <!-- Top Zebra 300 Card Printing Action Banner for HR Manager -->
+                        <div class="hr-action-banner" style="background:linear-gradient(135deg, #1e293b, #0f172a); color:#ffffff; border-radius:10px; padding:14px 20px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; box-shadow:0 4px 14px rgba(15,23,42,0.18); border:1px solid #334155;">
+                            <div style="display:flex; align-items:center; gap:14px;">
+                                <div style="width:44px; height:44px; background:#8b1a1a; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 2px 6px rgba(139,26,26,0.4); flex-shrink:0;">
+                                    <i data-lucide="credit-card" style="width:24px; height:24px;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:15px; font-weight:800; color:#ffffff; display:flex; align-items:center; gap:8px;">
+                                        <span>مركز طباعة البطاقات الأمنية الرسمية (طابعة Zebra 300)</span>
+                                        <span style="background:#059669; color:#ffffff; font-size:11px; font-weight:800; padding:2px 8px; border-radius:12px;">CR80 PVC</span>
+                                    </div>
+                                    <div style="font-size:12px; color:#cbd5e1; margin-top:2px;">
+                                        تصدير وطباعة بطاقات العمل الأمنية لجميع الموظفين المقبولين دفعة واحدة بضغطة زر متوافقة كلياً مع طابعات زيبرا
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                                <button type="button" class="btn-primary-red" onclick="openZebraBatchModal()" style="background:#8b1a1a; border-color:#8b1a1a; padding:10px 20px; font-size:13.5px; font-weight:800; display:inline-flex; align-items:center; gap:8px; box-shadow:0 2px 8px rgba(139,26,26,0.35); cursor:pointer;">
+                                    <i data-lucide="printer"></i>
+                                    <span>تصدير بطاقات جميع المقبولين (Zebra 300)</span>
+                                    <span id="zebra_accepted_counter_pill" style="background:#ffffff; color:#8b1a1a; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:900;">14</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- 1. Top Status Metrics Grid (Matching Image 1) -->
                         <div class="hr-status-grid" id="hr_status_metrics">
                             <div class="hr-status-card status-card-all active" onclick="filterApplicationsByStatus('الكل', this)">
@@ -3030,6 +3123,94 @@
 
     <!-- 10. حاوية طباعة البطاقة الأمنية الرسمية المعتمدة (Security ID Badge Print Sheet) -->
     <div class="security-badge-print-container" id="security-badge-print-container" style="display:none;"></div>
+
+    <!-- 11. نافذة تصدير وطباعة بطاقات المقبولين لطابعة زيبرا Zebra 300 (Zebra Batch Modal) -->
+    <div class="modal-backdrop" id="zebraBatchModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); z-index:9999; justify-content:center; align-items:center;">
+        <div class="modal-box" style="max-width:760px; width:94%; max-height:90vh; overflow-y:auto; text-align:right; border-radius:12px; background:var(--bg-card); color:var(--text-body); box-shadow:var(--shadow-lg); padding:24px; border:1px solid var(--border-color);">
+            
+            <!-- Modal Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid var(--border-color); padding-bottom:14px; margin-bottom:16px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:40px; height:40px; background:#8b1a1a; color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i data-lucide="printer" style="width:22px; height:22px;"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin:0; font-size:16.5px; font-weight:800; color:var(--text-heading);">مركز طباعة وتصدير بطاقات المقبولين (Zebra ZC300)</h4>
+                        <p style="margin:2px 0 0 0; font-size:12px; color:var(--text-muted);">تجهيز وطباعة بطاقات العمل الأمنية البلاستيكية CR80 لجميع المرشحين المقبولين دفعة واحدة</p>
+                    </div>
+                </div>
+                <button type="button" class="access-btn" onclick="closeZebraBatchModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <!-- Configuration Filters Strip -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-bottom:16px; background:var(--bg-subtle); padding:14px; border-radius:8px; border:1px solid var(--border-color);">
+                <div>
+                    <label style="font-size:12px; font-weight:800; color:var(--text-heading); display:block; margin-bottom:4px;">1. فلترة المشروع:</label>
+                    <select id="zebra_batch_project_filter" class="form-control" style="width:100%; font-size:12.5px; font-weight:700; padding:6px 10px;" onchange="renderZebraCandidatesList()">
+                        <option value="الكل">🏢 جميع المشاريع (كافة المقبولين)</option>
+                        <option value="مشروع مجمع وزارة الداخلية">مشروع مجمع وزارة الداخلية</option>
+                        <option value="مشروع المربع الجديد">مشروع المربع الجديد</option>
+                        <option value="مشروع مركز الملك عبدالله المالي (KAFD)">مشروع مركز الملك عبدالله المالي (KAFD)</option>
+                        <option value="مشروع هيئة السوق المالية">مشروع هيئة السوق المالية</option>
+                        <option value="مشروع برج النصبان">مشروع برج النصبان</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:800; color:var(--text-heading); display:block; margin-bottom:4px;">2. نوع الطابعة / المخرجات:</label>
+                    <select id="zebra_batch_printer_profile" class="form-control" style="width:100%; font-size:12.5px; font-weight:700; padding:6px 10px;" onchange="updateZebraPageCounter()">
+                        <option value="zebra">🖨️ طابعة كروت Zebra 300 (كروت CR80 بلاستيك)</option>
+                        <option value="a4">📄 ملف A4 مجمع (للطباعة العادية والتصدير PDF)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:12px; font-weight:800; color:var(--text-heading); display:block; margin-bottom:4px;">3. أوجه البطاقة:</label>
+                    <select id="zebra_batch_sides" class="form-control" style="width:100%; font-size:12.5px; font-weight:700; padding:6px 10px;" onchange="updateZebraPageCounter()">
+                        <option value="duplex">الوجهان معاً (دوبلكس - Front & Back)</option>
+                        <option value="front">الوجه الأمامي فقط (Front Only)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Candidates Checklist Header & Quick Select -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-size:13px; font-weight:800; color:var(--text-heading);" id="zebra_candidates_summary_text">
+                    الموظفون المؤهلون لإصدار البطاقات: <strong>14 موظف مقبول</strong>
+                </div>
+                <div style="font-size:12px;">
+                    <a href="javascript:void(0)" onclick="toggleAllZebraCheckboxes(true)" style="color:var(--primary); font-weight:700; margin-left:12px;">تحديد الكل</a>
+                    <a href="javascript:void(0)" onclick="toggleAllZebraCheckboxes(false)" style="color:var(--danger); font-weight:700;">إلغاء التحديد</a>
+                </div>
+            </div>
+
+            <!-- Scrollable Candidate Items Container -->
+            <div id="zebra_candidates_checklist_body" style="max-height:260px; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px; padding:8px; background:var(--bg-card); margin-bottom:18px;">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Notice / Tech Spec Alert -->
+            <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:6px; padding:10px 14px; font-size:12px; color:#065f46; display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                <i data-lucide="check-circle" style="width:18px; height:18px; color:#059669; flex-shrink:0;"></i>
+                <div>
+                    <strong>جاهزية طابعة Zebra ZC300:</strong> يتم إرسال كل وجه كارت كصفحة قياسية مستقلة بمقاس 85.6 × 54 مم بدون هوامش (Zero Margins) ودقة 300 DPI لتغذية القلاب الميكانيكي لطباعة الوجهين أوتوماتيكياً.
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border-color); padding-top:14px;">
+                <div style="font-size:12.5px; color:var(--text-muted);" id="zebra_pages_counter_text">
+                    إجمالي صفحات الطباعة المقدرة: <strong>28 صفحة كارت</strong>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn-primary-red" onclick="executeZebraBatchPrint()" style="background:#8b1a1a; border-color:#8b1a1a; font-size:14px; padding:9px 22px; font-weight:800; display:inline-flex; align-items:center; gap:8px;">
+                        <i data-lucide="printer"></i> بدء طباعة جميع البطاقات (Zebra 300)
+                    </button>
+                    <button type="button" class="btn-secondary-clean" onclick="closeZebraBatchModal()" style="font-size:13.5px; padding:9px 18px;">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 8. الكود البرمجي التفاعلي والربط مع الخادم الخلفي (JavaScript) -->
     <script>
@@ -3486,21 +3667,43 @@
         }
         window.prepareBadgePrint = prepareBadgePrint;
 
-        // --- محرك أوامر الطباعة الرسمي الموحد (4 أوضاع طباعة معتمدة) ---
+        // --- إعداد نمط حجم الصفحة الطباعية ديناميكياً (Zebra 300 CR80 مقابل A4) ---
+        function setPrintPageStyle(mode) {
+            let styleEl = document.getElementById('zebra-print-page-style');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'zebra-print-page-style';
+                document.head.appendChild(styleEl);
+            }
+            if (mode === 'zebra') {
+                styleEl.textContent = `@media print { @page { size: 85.6mm 54mm !important; margin: 0 !important; } }`;
+            } else {
+                styleEl.textContent = `@media print { @page { size: A4 portrait !important; margin: 10mm !important; } }`;
+            }
+        }
+        window.setPrintPageStyle = setPrintPageStyle;
+
+        // --- محرك أوامر الطباعة الرسمي الموحد (يدعم طابعة كروت Zebra 300 ووثائق A4) ---
         function printDocumentSection(mode) {
             const targetMode = mode || 'docs';
-            if (targetMode === 'badge') {
+            if (targetMode === 'zebra-badge') {
+                setPrintPageStyle('zebra');
+            } else if (targetMode === 'badge') {
+                setPrintPageStyle('a4');
                 prepareBadgePrint();
+            } else {
+                setPrintPageStyle('a4');
             }
             document.body.setAttribute('data-print-mode', targetMode);
             const cleanup = () => {
                 document.body.removeAttribute('data-print-mode');
+                setPrintPageStyle('a4');
                 window.removeEventListener('afterprint', cleanup);
             };
             window.addEventListener('afterprint', cleanup, { once: true });
             setTimeout(() => {
                 window.print();
-                setTimeout(cleanup, 2000);
+                setTimeout(cleanup, 2500);
             }, 80);
         }
         window.printDocumentSection = printDocumentSection;

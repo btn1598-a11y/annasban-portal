@@ -336,6 +336,16 @@ async function runTestSuite() {
             hrEngineJs.includes('printApplicantSecurityBadge'),
             'إتاحة زر وخاصية طباعة البطاقة الأمنية لجميع المتقدمين في لوحة الموارد البشرية'
         );
+        assertTest(
+            indexHtml.includes('body[data-print-mode="zebra-badge"]') &&
+            indexHtml.includes('id="zebraBatchModal"') &&
+            indexHtml.includes('id="zebra_accepted_counter_pill"') &&
+            hrEngineJs.includes('openZebraBatchModal') &&
+            hrEngineJs.includes('executeZebraBatchPrint') &&
+            hrEngineJs.includes('generateZebraFrontCardHtml') &&
+            hrEngineJs.includes('generateZebraBackCardHtml'),
+            'جاهزية محرك طابعة زيبرا 300 (Zebra ZC300) وتصدير بطاقات جميع المقبولين دفعة واحدة بضغطة زر'
+        );
 
         console.log('\n===============================================================');
         console.log(`📊 النتيجة النهائية للفحص الأوتوماتيكي:`);
